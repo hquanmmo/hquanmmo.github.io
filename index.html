@@ -11,272 +11,79 @@
         :root {
             --primary-color: #333333;
             --secondary-color: #666666;
-            --accent-bg: #ECCDC8; /* Màu hồng phấn trên đầu */
+            --accent-bg: #ECCDC8; 
             --timeline-line: #999;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f4f4f4;
-            color: var(--primary-color);
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        /* Top Accent Bar */
-        .top-bar {
-            height: 40px;
-            background-color: var(--accent-bg);
-            width: 100%;
-        }
-
-        /* Main A4 Container */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #f4f4f4; color: var(--primary-color); line-height: 1.6; font-size: 14px; }
+        
+        .top-bar { height: 40px; background-color: var(--accent-bg); width: 100%; }
+        
         .container {
-            max-width: 900px; /* Size A4 tương đối */
+            max-width: 900px;
             background: white;
             margin: 0 auto;
             padding: 40px 50px;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
             display: grid;
-            grid-template-columns: 30% 70%; /* Chia cột trái phải */
+            grid-template-columns: 32% 68%; /* Điều chỉnh cột trái rộng hơn chút */
             gap: 40px;
         }
 
-        /* HEADER SECTION */
-        .header-area {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: 30% 70%;
-            gap: 40px;
-            margin-bottom: 40px;
-            align-items: center;
-        }
+        /* HEADER */
+        .header-area { grid-column: 1 / -1; display: grid; grid-template-columns: 32% 68%; gap: 40px; margin-bottom: 40px; align-items: center; }
+        .profile-photo { width: 180px; height: 180px; background-color: #eee; border-radius: 50%; overflow: hidden; border: 5px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; }
+        .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .header-info h1 { font-size: 42px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: #444; line-height: 1.1; margin-bottom: 10px; }
+        .header-info h2 { font-size: 16px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; color: var(--secondary-color); margin-bottom: 20px; }
+        .divider { height: 2px; background-color: #ddd; width: 100%; }
 
-        .profile-photo {
-            width: 180px;
-            height: 180px;
-            background-color: #ddd;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 5px solid #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin: 0 auto;
-        }
+        /* CONTENT */
+        .left-col { padding-right: 10px; }
+        .right-col { padding-left: 10px; }
 
-        .profile-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        h3.section-title { font-size: 18px; text-transform: uppercase; font-weight: 700; margin-bottom: 20px; color: #444; letter-spacing: 1px; }
+        p { color: var(--secondary-color); margin-bottom: 15px; text-align: justify; }
 
-        .header-info h1 {
-            font-size: 42px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            color: #444;
-            line-height: 1.1;
-            margin-bottom: 10px;
-        }
+        .contact-info ul { list-style: none; }
+        .contact-info li { display: flex; align-items: center; margin-bottom: 15px; font-size: 13px; color: var(--secondary-color); }
+        .contact-info i { width: 20px; margin-right: 10px; color: #333; }
 
-        .header-info h2 {
-            font-size: 18px;
-            font-weight: 400;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--secondary-color);
-            margin-bottom: 20px;
-        }
+        .edu-item, .skill-list { margin-bottom: 25px; }
+        .degree { font-weight: 700; font-size: 14px; color: #444; }
+        .uni { font-size: 13px; color: #333; font-weight: 500; }
+        .year { font-size: 12px; color: #888; }
 
-        .divider {
-            height: 2px;
-            background-color: #ddd;
-            width: 100%;
-        }
+        .skill-list p { margin-bottom: 8px; font-size: 13px; border-bottom: 1px dashed #eee; padding-bottom: 2px;}
 
-        /* COLUMNS */
-        .left-col {
-            padding-right: 10px;
-        }
-
-        .right-col {
-            padding-left: 10px;
-        }
-
-        /* SECTIONS GENERAL */
-        h3.section-title {
-            font-size: 18px;
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #444;
-            letter-spacing: 1px;
-        }
-
-        p {
-            color: var(--secondary-color);
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-
-        /* CONTACT INFO */
-        .contact-info ul {
-            list-style: none;
-        }
-
-        .contact-info li {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 13px;
-            color: var(--secondary-color);
-        }
-
-        .contact-info i {
-            width: 20px;
-            margin-right: 10px;
-            color: #333;
-        }
-
-        /* EDUCATION & EXPERTISE ITEM */
-        .edu-item, .skill-list {
-            margin-bottom: 25px;
-        }
-
-        .degree {
-            font-weight: 700;
-            font-size: 15px;
-            color: #444;
-        }
-
-        .uni {
-            font-size: 13px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .year {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .skill-list p {
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        /* TIMELINE (WORK EXPERIENCE) */
-        .timeline {
-            border-left: 1px solid var(--timeline-line);
-            padding-left: 25px;
-            position: relative;
-        }
-
-        .timeline-item {
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .timeline-dot {
-            width: 12px;
-            height: 12px;
-            background: white;
-            border: 2px solid #555;
-            border-radius: 50%;
-            position: absolute;
-            left: -32px; /* Căn chỉnh với đường line */
-            top: 2px;
-        }
-
-        .time-period {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #666;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .company-info {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 2px;
-        }
-
-        .job-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .job-desc {
-            font-size: 13px;
-            color: #777;
-        }
+        /* TIMELINE */
+        .timeline { border-left: 1px solid var(--timeline-line); padding-left: 25px; position: relative; }
+        .timeline-item { margin-bottom: 30px; position: relative; }
+        .timeline-dot { width: 12px; height: 12px; background: white; border: 2px solid #555; border-radius: 50%; position: absolute; left: -32px; top: 2px; }
+        .time-period { font-size: 12px; text-transform: uppercase; color: #666; margin-bottom: 5px; font-weight: 500; }
+        .company-info { font-size: 13px; color: #888; margin-bottom: 2px; font-style: italic;}
+        .job-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .job-desc { font-size: 13px; color: #777; }
 
         /* REFERENCES */
-        .references-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
+        .ref-note { font-style: italic; color: #777; font-size: 13px; }
 
-        .ref-name {
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .ref-role {
-            font-size: 12px;
-            margin-bottom: 10px;
-            color: #555;
-        }
-
-        .ref-contact {
-            font-size: 12px;
-            color: #777;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .container, .header-area {
-                grid-template-columns: 1fr;
-                gap: 20px;
-                padding: 20px;
-            }
-            .header-info {
-                text-align: center;
-            }
-            .header-info h1 {
-                font-size: 32px;
-            }
-            .timeline {
-                border-left: none;
-                padding-left: 0;
-            }
-            .timeline-dot {
-                display: none;
-            }
-            .references-grid {
-                grid-template-columns: 1fr;
-            }
+            .container, .header-area { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
+            .header-info { text-align: center; }
+            .timeline { border-left: none; padding-left: 0; }
+            .timeline-dot { display: none; }
         }
     </style>
 </head>
 <body>
-
     <div class="top-bar"></div>
-
     <div class="container">
         <header class="header-area">
             <div class="profile-photo">
-                <img src="https://ui-avatars.com/api/?name=Nguyen+Hong+Quan&background=333&color=fff&size=256" alt="Nguyễn Hồng Quân">
+                <img src="https://ui-avatars.com/api/?name=Nguyen+Hong+Quan&background=333&color=fff&size=256&font-size=0.33" alt="Nguyễn Hồng Quân">
             </div>
             <div class="header-info">
                 <h1>NGUYỄN HỒNG<br>QUÂN</h1>
@@ -291,45 +98,39 @@
                     <li><i class="fas fa-phone"></i> 0326 357 293</li>
                     <li><i class="fas fa-envelope"></i> NHQ.IT.VN@GMAIL.COM</li>
                     <li><i class="fas fa-map-marker-alt"></i> Hà Tĩnh, Việt Nam</li>
-                    <li><i class="fas fa-birthday-cake"></i> 2001</li>
+                    <li><i class="fas fa-calendar"></i> 2001</li>
                 </ul>
             </div>
-
             <br>
-
+            
             <section>
                 <h3 class="section-title">Học Vấn</h3>
-                
                 <div class="edu-item">
-                    <div class="degree">Cử nhân Công nghệ thông tin</div>
-                    <div class="uni">Đại học Hà Tĩnh (Dự kiến)</div>
-                    <div class="year">2019 - 2023</div>
-                </div>
-
-                <div class="edu-item">
-                    <div class="degree">Chứng chỉ Google Workspace</div>
-                    <div class="uni">Coursera / Google</div>
-                    <div class="year">2022</div>
+                    <div class="degree">Cao đẳng Thực hành</div>
+                    <div class="uni">Cao đẳng FPT Polytechnic</div>
+                    <div class="year">2019 - 2022</div>
                 </div>
             </section>
 
             <section>
-                <h3 class="section-title">Chuyên Môn</h3>
+                <h3 class="section-title">Kỹ Năng Sheets</h3>
                 <div class="skill-list">
-                    <p>Google Sheets Nâng Cao</p>
-                    <p>Google Apps Script (Automation)</p>
-                    <p>Xử lý dữ liệu & Báo cáo</p>
-                    <p>Google Docs & Soạn thảo</p>
+                    <p><b>Hàm mảng:</b> ArrayFormula</p>
+                    <p><b>Hàm truy vấn:</b> QUERY (SQL-like)</p>
+                    <p><b>Hàm dò tìm:</b> Vlookup, Xlookup, Index/Match</p>
+                    <p><b>Xử lý chuỗi:</b> RegexExtract/Replace</p>
+                    <p><b>Công cụ:</b> Data Validation, Conditional Formatting</p>
+                    <p><b>Báo cáo:</b> Pivot Table, Charts</p>
+                </div>
+            </section>
+
+            <section>
+                <h3 class="section-title">Phần Mềm Khác</h3>
+                <div class="skill-list">
+                    <p>Google Docs (Trình bày văn bản)</p>
+                    <p>Google Forms (Thu thập dữ liệu)</p>
                     <p>Microsoft Excel</p>
-                    <p>Quản lý thời gian</p>
-                </div>
-            </section>
-
-            <section>
-                <h3 class="section-title">Ngôn Ngữ</h3>
-                <div class="skill-list">
-                    <p>Tiếng Việt (Bản xứ)</p>
-                    <p>Tiếng Anh (Đọc hiểu tài liệu kỹ thuật)</p>
+                    <p>Sử dụng máy tính thành thạo</p>
                 </div>
             </section>
         </aside>
@@ -338,73 +139,68 @@
             <section>
                 <h3 class="section-title">Giới Thiệu</h3>
                 <p>
-                    Tôi là một người đam mê tối ưu hóa quy trình làm việc thông qua hệ sinh thái Google Workspace. Với kinh nghiệm chuyên sâu về Google Sheets và Google Docs, tôi giúp các doanh nghiệp và cá nhân chuyển đổi dữ liệu thô thành các bảng điều khiển trực quan và hệ thống văn bản chuyên nghiệp. 
+                    Tôi là một người chuyên xử lý dữ liệu trên nền tảng Google Sheets và Excel. Điểm mạnh của tôi là khả năng tư duy logic để xây dựng các hệ thống quản lý dữ liệu phức tạp hoàn toàn bằng <b>công thức (Formulas)</b> mà không cần can thiệp code/script, giúp file hoạt động ổn định và dễ dàng chuyển giao.
                 </p>
                 <p>
-                    Luôn tìm tòi các giải pháp tự động hóa bằng Apps Script để tiết kiệm thời gian và nâng cao hiệu suất công việc.
+                    Tôi mong muốn áp dụng kỹ năng tin học văn phòng nâng cao để hỗ trợ doanh nghiệp tối ưu hóa quy trình nhập liệu và báo cáo.
                 </p>
             </section>
-
             <br>
 
             <section>
                 <h3 class="section-title">Kinh Nghiệm Làm Việc</h3>
-                
                 <div class="timeline">
                     <div class="timeline-item">
                         <div class="timeline-dot"></div>
-                        <div class="time-period">Tháng 1/2023 - Hiện tại</div>
-                        <div class="company-info">Freelancer | Làm việc từ xa</div>
-                        <div class="job-title">Chuyên viên Tự động hóa Dữ liệu</div>
-                        <p class="job-desc">
-                            Thiết kế các hệ thống quản lý kho, quản lý nhân sự, và theo dõi tài chính hoàn toàn trên Google Sheets. Viết script tự động gửi email báo cáo hàng ngày và đồng bộ dữ liệu giữa Docs và Sheets.
-                        </p>
+                        <div class="time-period">2022 - Hiện tại</div>
+                        <div class="company-info">Freelancer / Làm việc tự do</div>
+                        <div class="job-title">Xây dựng File Quản lý & Báo cáo</div>
+                        <div class="job-desc">
+                            <ul>
+                                <li>- Thiết kế các template Google Sheets để quản lý bán hàng, kho, và dòng tiền cá nhân.</li>
+                                <li>- Sử dụng hàm <b>QUERY</b> và <b>ArrayFormula</b> để tự động trích xuất dữ liệu báo cáo từ data thô.</li>
+                                <li>- Tạo các Dashboard trực quan với biểu đồ động (Charts) cập nhật theo thời gian thực.</li>
+                                <li>- Thiết lập xác thực dữ liệu (Data Validation) để hạn chế lỗi nhập liệu của người dùng.</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div class="timeline-item">
                         <div class="timeline-dot"></div>
                         <div class="time-period">2021 - 2022</div>
-                        <div class="company-info">Công ty ABC | Hà Tĩnh</div>
-                        <div class="job-title">Admin / Hỗ trợ Văn phòng</div>
-                        <p class="job-desc">
-                            Chịu trách nhiệm soạn thảo văn bản hành chính, quy chuẩn hóa các biểu mẫu công ty trên Google Docs. Quản lý dữ liệu chấm công và tính lương sơ bộ bằng Excel/Sheets.
-                        </p>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="time-period">2020 - 2021</div>
-                        <div class="company-info">Dự án Cá nhân & Cộng đồng</div>
-                        <div class="job-title">Cộng tác viên Nhập liệu</div>
-                        <p class="job-desc">
-                            Tham gia các dự án số hóa dữ liệu, đảm bảo độ chính xác 99%. Xây dựng các template Google Sheets chia sẻ cho cộng đồng sinh viên.
-                        </p>
+                        <div class="company-info">Cộng tác viên Dự án</div>
+                        <div class="job-title">Nhập liệu & Xử lý Văn bản</div>
+                        <div class="job-desc">
+                            <ul>
+                                <li>- Chuyển đổi dữ liệu từ văn bản giấy/file PDF sang Google Sheets/Excel.</li>
+                                <li>- Soạn thảo và định dạng văn bản hành chính chuyên nghiệp trên Google Docs.</li>
+                                <li>- Dọn dẹp, chuẩn hóa dữ liệu thô (Data Cleaning) sử dụng các hàm xử lý chuỗi.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>
-
             <br>
 
             <section>
-                <h3 class="section-title">Người Tham Chiếu</h3>
-                <div class="references-grid">
-                    <div>
-                        <div class="ref-name">Nguyễn Văn A</div>
-                        <div class="ref-role">Trưởng phòng Nhân sự / Cty ABC</div>
-                        <div class="ref-contact">
-                            Phone: 0912-xxx-xxx<br>
-                            Email: a.nguyen@example.com
-                        </div>
-                    </div>
-                    <div>
-                        <div class="ref-name">Trần Thị B</div>
-                        <div class="ref-role">Khách hàng Freelance</div>
-                        <div class="ref-contact">
-                            Phone: 0987-xxx-xxx<br>
-                            Email: b.tran@example.com
-                        </div>
-                    </div>
+                <h3 class="section-title">Dự Án Tiêu Biểu</h3>
+                <div class="timeline-item" style="margin-bottom: 0;">
+                    <div class="job-title" style="font-size: 14px;">Hệ thống Quản lý Kho (Google Sheets)</div>
+                    <p style="font-size: 13px; margin-bottom: 5px;">
+                        Xây dựng file quản lý Xuất - Nhập - Tồn hoàn toàn bằng công thức. File tự động cảnh báo khi hàng tồn kho xuống thấp và tính toán giá vốn bình quân.
+                    </p>
                 </div>
+                <div class="timeline-item">
+                    <div class="job-title" style="font-size: 14px;">Chuẩn hóa Văn bản Hành chính</div>
+                    <p style="font-size: 13px;">
+                        Thiết lập hệ thống mẫu (Template) trên Google Docs giúp giảm 50% thời gian soạn thảo hợp đồng và công văn.
+                    </p>
+                </div>
+            </section>
+
+            <section>
+                <h3 class="section-title">Người Tham Chiếu</h3>
+                <p class="ref-note">Thông tin người tham chiếu và danh sách dự án chi tiết sẽ được cung cấp khi có yêu cầu.</p>
             </section>
         </main>
     </div>
