@@ -1,208 +1,213 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV - Nguyễn Hồng Quân</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary-color: #333333;
-            --secondary-color: #666666;
-            --accent-bg: #ECCDC8; 
-            --timeline-line: #999;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Montserrat', sans-serif; background-color: #f4f4f4; color: var(--primary-color); line-height: 1.6; font-size: 14px; }
-        
-        .top-bar { height: 40px; background-color: var(--accent-bg); width: 100%; }
-        
-        .container {
-            max-width: 900px;
-            background: white;
-            margin: 0 auto;
-            padding: 40px 50px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            display: grid;
-            grid-template-columns: 32% 68%; /* Điều chỉnh cột trái rộng hơn chút */
-            gap: 40px;
-        }
+<title>Landing Page giá rẻ từ 2$ | Chuẩn SEO – Tối ưu chuyển đổi</title>
 
-        /* HEADER */
-        .header-area { grid-column: 1 / -1; display: grid; grid-template-columns: 32% 68%; gap: 40px; margin-bottom: 40px; align-items: center; }
-        .profile-photo { width: 180px; height: 180px; background-color: #eee; border-radius: 50%; overflow: hidden; border: 5px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; }
-        .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .header-info h1 { font-size: 42px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: #444; line-height: 1.1; margin-bottom: 10px; }
-        .header-info h2 { font-size: 16px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; color: var(--secondary-color); margin-bottom: 20px; }
-        .divider { height: 2px; background-color: #ddd; width: 100%; }
+<meta name="description" content="Thiết kế landing page giá rẻ từ 2$ cho cá nhân, shop online, TikToker. Chuẩn SEO, tối ưu chuyển đổi, triển khai nhanh.">
+<meta name="keywords" content="landing page giá rẻ, landing page 2 đô, thiết kế landing page, landing page tiktoker">
+<meta name="author" content="LandingPagePro">
+<meta name="robots" content="index, follow">
 
-        /* CONTENT */
-        .left-col { padding-right: 10px; }
-        .right-col { padding-left: 10px; }
+<meta property="og:title" content="Landing Page giá rẻ từ 2$ – Có khách ngay">
+<meta property="og:description" content="Landing page 1 trang – đơn giản – hiệu quả – phù hợp bán hàng online">
+<meta property="og:type" content="website">
 
-        h3.section-title { font-size: 18px; text-transform: uppercase; font-weight: 700; margin-bottom: 20px; color: #444; letter-spacing: 1px; }
-        p { color: var(--secondary-color); margin-bottom: 15px; text-align: justify; }
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
 
-        .contact-info ul { list-style: none; }
-        .contact-info li { display: flex; align-items: center; margin-bottom: 15px; font-size: 13px; color: var(--secondary-color); }
-        .contact-info i { width: 20px; margin-right: 10px; color: #333; }
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#0f172a'
+      }
+    }
+  }
+}
+</script>
 
-        .edu-item, .skill-list { margin-bottom: 25px; }
-        .degree { font-weight: 700; font-size: 14px; color: #444; }
-        .uni { font-size: 13px; color: #333; font-weight: 500; }
-        .year { font-size: 12px; color: #888; }
-
-        .skill-list p { margin-bottom: 8px; font-size: 13px; border-bottom: 1px dashed #eee; padding-bottom: 2px;}
-
-        /* TIMELINE */
-        .timeline { border-left: 1px solid var(--timeline-line); padding-left: 25px; position: relative; }
-        .timeline-item { margin-bottom: 30px; position: relative; }
-        .timeline-dot { width: 12px; height: 12px; background: white; border: 2px solid #555; border-radius: 50%; position: absolute; left: -32px; top: 2px; }
-        .time-period { font-size: 12px; text-transform: uppercase; color: #666; margin-bottom: 5px; font-weight: 500; }
-        .company-info { font-size: 13px; color: #888; margin-bottom: 2px; font-style: italic;}
-        .job-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
-        .job-desc { font-size: 13px; color: #777; }
-
-        /* REFERENCES */
-        .ref-note { font-style: italic; color: #777; font-size: 13px; }
-
-        @media (max-width: 768px) {
-            .container, .header-area { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
-            .header-info { text-align: center; }
-            .timeline { border-left: none; padding-left: 0; }
-            .timeline-dot { display: none; }
-        }
-    </style>
+<style>
+.reveal {opacity:0; transform:translateY(40px); transition:0.8s}
+.reveal.active {opacity:1; transform:none}
+</style>
 </head>
-<body>
-    <div class="top-bar"></div>
-    <div class="container">
-        <header class="header-area">
-            <div class="profile-photo">
-                <img src="https://ui-avatars.com/api/?name=Nguyen+Hong+Quan&background=333&color=fff&size=256&font-size=0.33" alt="Nguyễn Hồng Quân">
-            </div>
-            <div class="header-info">
-                <h1>NGUYỄN HỒNG<br>QUÂN</h1>
-                <h2>Chuyên gia Google Sheets & Docs</h2>
-                <div class="divider"></div>
-            </div>
-        </header>
 
-        <aside class="left-col">
-            <div class="contact-info">
-                <ul>
-                    <li><i class="fas fa-phone"></i> 0326 357 293</li>
-                    <li><i class="fas fa-envelope"></i> nhq.it.vn@gmail.com</li>
-                    <li><i class="fas fa-map-marker-alt"></i> Hà Tĩnh, Việt Nam</li>
-                    <li><i class="fas fa-calendar"></i> 2001</li>
-                </ul>
-            </div>
-            <br>
-            
-            <section>
-                <h3 class="section-title">Học Vấn</h3>
-                <div class="edu-item">
-                    <div class="degree">Cao đẳng Thực hành</div>
-                    <div class="uni">Cao đẳng FPT Polytechnic</div>
-                    <div class="year">2019 - 2022</div>
-                </div>
-            </section>
+<body class="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-100">
 
-            <section>
-                <h3 class="section-title">Kỹ Năng Sheets</h3>
-                <div class="skill-list">
-                    <p><b>Hàm mảng:</b> ArrayFormula</p>
-                    <p><b>Hàm truy vấn:</b> QUERY (SQL-like)</p>
-                    <p><b>Hàm dò tìm:</b> Vlookup, Xlookup, Index/Match</p>
-                    <p><b>Xử lý chuỗi:</b> RegexExtract/Replace</p>
-                    <p><b>Công cụ:</b> Data Validation, Conditional Formatting</p>
-                    <p><b>Báo cáo:</b> Pivot Table, Charts</p>
-                </div>
-            </section>
+<!-- FLOATING ZALO -->
+<a href="#contact" class="fixed bottom-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-full shadow-lg hover:scale-110 transition">
+💬 Zalo tư vấn
+</a>
 
-            <section>
-                <h3 class="section-title">Phần Mềm Khác</h3>
-                <div class="skill-list">
-                    <p>Google Docs (Trình bày văn bản)</p>
-                    <p>Google Forms (Thu thập dữ liệu)</p>
-                    <p>Microsoft Excel</p>
-                    <p>Sử dụng máy tính thành thạo</p>
-                </div>
-            </section>
-        </aside>
-
-        <main class="right-col">
-            <section>
-                <h3 class="section-title">Giới Thiệu</h3>
-                <p>
-                    Tôi là một người chuyên xử lý dữ liệu trên nền tảng Google Sheets và Excel. Điểm mạnh của tôi là khả năng tư duy logic để xây dựng các hệ thống quản lý dữ liệu phức tạp hoàn toàn bằng <b>công thức (Formulas)</b> mà không cần can thiệp code/script, giúp file hoạt động ổn định và dễ dàng chuyển giao.
-                </p>
-                <p>
-                    Tôi mong muốn áp dụng kỹ năng tin học văn phòng nâng cao để hỗ trợ doanh nghiệp tối ưu hóa quy trình nhập liệu và báo cáo.
-                </p>
-            </section>
-            <br>
-
-            <section>
-                <h3 class="section-title">Kinh Nghiệm Làm Việc</h3>
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="time-period">2022 - Hiện tại</div>
-                        <div class="company-info">Freelancer / Làm việc tự do</div>
-                        <div class="job-title">Xây dựng File Quản lý & Báo cáo</div>
-                        <div class="job-desc">
-                            <ul>
-                                <li>- Thiết kế các template Google Sheets để quản lý bán hàng, kho, và dòng tiền cá nhân.</li>
-                                <li>- Sử dụng hàm <b>QUERY</b> và <b>ArrayFormula</b> để tự động trích xuất dữ liệu báo cáo từ data thô.</li>
-                                <li>- Tạo các Dashboard trực quan với biểu đồ động (Charts) cập nhật theo thời gian thực.</li>
-                                <li>- Thiết lập xác thực dữ liệu (Data Validation) để hạn chế lỗi nhập liệu của người dùng.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="time-period">2021 - 2022</div>
-                        <div class="company-info">Cộng tác viên Dự án</div>
-                        <div class="job-title">Nhập liệu & Xử lý Văn bản</div>
-                        <div class="job-desc">
-                            <ul>
-                                <li>- Chuyển đổi dữ liệu từ văn bản giấy/file PDF sang Google Sheets/Excel.</li>
-                                <li>- Soạn thảo và định dạng văn bản hành chính chuyên nghiệp trên Google Docs.</li>
-                                <li>- Dọn dẹp, chuẩn hóa dữ liệu thô (Data Cleaning) sử dụng các hàm xử lý chuỗi.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <br>
-
-            <section>
-                <h3 class="section-title">Dự Án Tiêu Biểu</h3>
-                <div class="timeline-item" style="margin-bottom: 0;">
-                    <div class="job-title" style="font-size: 14px;">Hệ thống Quản lý Kho (Google Sheets)</div>
-                    <p style="font-size: 13px; margin-bottom: 5px;">
-                        Xây dựng file quản lý Xuất - Nhập - Tồn hoàn toàn bằng công thức. File tự động cảnh báo khi hàng tồn kho xuống thấp và tính toán giá vốn bình quân.
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="job-title" style="font-size: 14px;">Chuẩn hóa Văn bản Hành chính</div>
-                    <p style="font-size: 13px;">
-                        Thiết lập hệ thống mẫu (Template) trên Google Docs giúp giảm 50% thời gian soạn thảo hợp đồng và công văn.
-                    </p>
-                </div>
-            </section>
-
-            <section>
-                <h3 class="section-title">Người Tham Chiếu</h3>
-                <p class="ref-note">Thông tin người tham chiếu và danh sách dự án chi tiết sẽ được cung cấp khi có yêu cầu.</p>
-            </section>
-        </main>
+<!-- HEADER -->
+<header class="fixed top-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur z-40 shadow">
+  <div class="max-w-7xl mx-auto flex justify-between items-center px-4 py-3">
+    <div class="font-bold text-xl text-primary">LandingPage<span class="text-secondary">Pro</span></div>
+    <nav class="hidden md:flex gap-6">
+      <a href="#features">Tính năng</a>
+      <a href="#process">Quy trình</a>
+      <a href="#pricing">Bảng giá</a>
+      <a href="#contact">Liên hệ</a>
+    </nav>
+    <div class="flex gap-3">
+      <button id="darkToggle">🌙</button>
+      <button id="menuBtn" class="md:hidden text-2xl">☰</button>
     </div>
+  </div>
+  <div id="mobileMenu" class="hidden md:hidden px-4 pb-4">
+    <a href="#features" class="block py-2">Tính năng</a>
+    <a href="#process" class="block py-2">Quy trình</a>
+    <a href="#pricing" class="block py-2">Bảng giá</a>
+    <a href="#contact" class="block py-2">Liên hệ</a>
+  </div>
+</header>
+
+<main class="pt-24">
+
+<!-- HERO -->
+<section class="bg-gradient-to-br from-primary to-blue-700 text-white">
+<div class="max-w-7xl mx-auto px-4 py-24 grid md:grid-cols-2 gap-10 items-center reveal">
+  <div>
+    <span class="inline-block bg-white/20 px-4 py-1 rounded-full mb-4">
+      🚀 Giải pháp bán hàng online
+    </span>
+    <h1 class="text-4xl md:text-5xl font-bold mb-6">
+      Landing Page giá rẻ<br>Chỉ từ <span class="text-yellow-300">2$</span>
+    </h1>
+    <p class="mb-8 text-lg opacity-90">
+      Dành cho người bán hàng, TikToker, freelancer.  
+      Không cần web phức tạp – chỉ cần 1 landing là đủ chốt khách.
+    </p>
+    <a href="#contact" class="bg-white text-primary px-8 py-4 rounded-xl font-semibold hover:scale-105 transition">
+      Nhận tư vấn miễn phí
+    </a>
+  </div>
+  <div class="hidden md:flex h-80 bg-white/20 rounded-2xl items-center justify-center text-6xl">
+    📈
+  </div>
+</div>
+</section>
+
+<!-- SO SÁNH -->
+<section class="py-20 bg-gray-50 dark:bg-slate-800 reveal">
+<div class="max-w-6xl mx-auto px-4">
+<h2 class="text-3xl font-bold text-center mb-12">Có Landing vs Không Landing</h2>
+<div class="grid md:grid-cols-2 gap-8">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
+<h3 class="font-bold text-xl mb-4 text-red-500">❌ Không Landing</h3>
+<ul class="space-y-2">
+<li>Khách xem xong là thoát</li>
+<li>Không biết liên hệ ở đâu</li>
+<li>Không đo lường được hiệu quả</li>
+</ul>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow border-2 border-primary">
+<h3 class="font-bold text-xl mb-4 text-primary">✅ Có Landing</h3>
+<ul class="space-y-2">
+<li>1 link – đầy đủ thông tin</li>
+<li>CTA rõ ràng, dễ chốt</li>
+<li>Tăng tỷ lệ chuyển đổi</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="py-20 reveal">
+<div class="max-w-7xl mx-auto px-4">
+<h2 class="text-3xl font-bold text-center mb-12">Tính năng nổi bật</h2>
+<div class="grid md:grid-cols-3 gap-8">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
+<h3 class="font-semibold text-xl mb-2">SEO Ready</h3>
+<p>Chuẩn meta, heading, dễ index Google.</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
+<h3 class="font-semibold text-xl mb-2">Mobile First</h3>
+<p>Tối ưu cho người dùng điện thoại.</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
+<h3 class="font-semibold text-xl mb-2">Tối ưu chuyển đổi</h3>
+<p>CTA, bố cục theo hành vi người dùng.</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- PROCESS -->
+<section id="process" class="bg-gray-50 dark:bg-slate-800 py-20 reveal">
+<div class="max-w-6xl mx-auto px-4">
+<h2 class="text-3xl font-bold text-center mb-12">Quy trình triển khai</h2>
+<div class="grid md:grid-cols-4 gap-6 text-center">
+<div>📩<p class="mt-2">Nhận yêu cầu</p></div>
+<div>🎨<p class="mt-2">Thiết kế giao diện</p></div>
+<div>⚙️<p class="mt-2">Code & tối ưu</p></div>
+<div>🚀<p class="mt-2">Bàn giao</p></div>
+</div>
+</div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="py-20 reveal">
+<div class="max-w-7xl mx-auto px-4">
+<h2 class="text-3xl font-bold text-center mb-12">Bảng giá</h2>
+<div class="grid md:grid-cols-3 gap-8">
+<div class="border p-6 rounded-xl text-center">
+<h3 class="font-bold">Basic</h3>
+<p class="text-4xl font-bold text-primary my-4">$2</p>
+<p>Landing đơn giản – phù hợp test sản phẩm</p>
+</div>
+<div class="border-2 border-primary p-6 rounded-xl text-center scale-105">
+<span class="bg-primary text-white px-3 py-1 rounded-full text-sm">Bán chạy</span>
+<h3 class="font-bold mt-3">Standard</h3>
+<p class="text-4xl font-bold text-primary my-4">$10</p>
+<p>Tối ưu SEO – chuyển đổi cao</p>
+</div>
+<div class="border p-6 rounded-xl text-center">
+<h3 class="font-bold">Pro</h3>
+<p class="text-4xl font-bold text-primary my-4">$30+</p>
+<p>Thiết kế theo yêu cầu</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="bg-primary text-white py-20 reveal">
+<div class="max-w-5xl mx-auto px-4 text-center">
+<h2 class="text-3xl font-bold mb-6">Nhận tư vấn miễn phí</h2>
+<div class="bg-white rounded-xl overflow-hidden">
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfLjDKLJ4236QwPkPq5yOOcY5cHhKeuIbzue-j5cq5P15PwZw/viewform?embedded=true"
+width="100%" height="700"></iframe>
+</div>
+<p class="mt-4 text-sm opacity-90">
+Website chỉ giới thiệu dịch vụ, không bán hàng trực tuyến.
+</p>
+</div>
+</section>
+
+</main>
+
+<footer class="bg-secondary text-white py-8 text-center">
+© 2026 LandingPagePro
+</footer>
+
+<script>
+menuBtn.onclick=()=>mobileMenu.classList.toggle('hidden');
+darkToggle.onclick=()=>document.documentElement.classList.toggle('dark');
+
+const reveals=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver(entries=>{
+entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('active')})
+},{threshold:0.2});
+reveals.forEach(r=>io.observe(r));
+</script>
+
 </body>
 </html>
