@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Social Profile Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- TAILWIND -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ICON -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- TYPED -->
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="theme-dark-purple">
+
+    <!-- ================= NAV ================= -->
+    <nav class="fixed top-0 w-full z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4">
+
+            <!-- LOGO -->
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="Logo" class="w-9 h-9 object-contain rounded-lg shadow-md">
+                <strong class="accent text-lg tracking-wide">HQUANMMO.GITHUB.IO</strong>
+            </div>
+
+            <!-- NAV -->
+            <div class="flex items-center gap-4">
+                <button class="nav-item active" onclick="goPage(0)">🏠<span class="nav-text"> Giới thiệu</span></button>
+                <button class="nav-item" onclick="goPage(1)">📊<span class="nav-text"> Kỹ năng</span></button>
+                <button class="nav-item" onclick="goPage(2)">🎥<span class="nav-text"> Dịch vụ</span></button>
+                <button class="nav-item" onclick="goPage(3)">💰<span class="nav-text"> Giá</span></button>
+                <button class="nav-item" onclick="goPage(4)">🐼<span class="nav-text"> Hệ sinh thái</span></button>
+            </div>
+
+            <!-- THEME SWITCH (CLEAN) -->
+            <div class="relative">
+                <select onchange="changeTheme(this.value)" class="theme-select appearance-none bg-transparent border border-white/20 rounded-lg
+         px-3 py-1 pr-8 text-sm cursor-pointer
+         hover:border-white/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+                    <option value="theme-dark-purple">🌙 Tím</option>
+                    <option value="theme-dark-blue">🔵 Xanh</option>
+                    <option value="theme-light">☀️ Sáng</option>
+                    <option value="theme-sunset">🌅 Sunset</option>
+                    <option value="theme-cyber-green">🟢 Cyber</option>
+                </select>
+
+
+                <!-- ARROW -->
+                <i
+                    class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-xs opacity-60"></i>
+            </div>
+
+        </div>
+    </nav>
+
+
+    <!-- ================= PAGES ================= -->
+    <div id="pages" class="pages">
+
+        <section class="page">
+            <div class="max-w-5xl mx-auto w-full grid md:grid-cols-2 gap-10 items-center px-6">
+
+                <!-- AVATAR + SOCIAL -->
+                <div class="text-center">
+                    <img src="https://i.pravatar.cc/300" class="w-40 h-40 rounded-full mx-auto mb-6 border-4 shadow-xl"
+                        style="border-color:var(--accent)">
+
+                    <h1 class="text-4xl font-bold">Nguyễn Hồng Quân</h1>
+                    <p class="accent text-xl mt-3"><span id="typed"></span></p>
+
+                    <div class="flex justify-center gap-6 mt-6 text-2xl">
+                        <a href="#" class="hover:scale-125 transition"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#" class="hover:scale-125 transition"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" class="hover:scale-125 transition"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="hover:scale-125 transition"><i class="fa-solid fa-envelope"></i></a>
+                    </div>
+                </div>
+
+                <!-- INTRO CONTENT -->
+                <div>
+                    <h2 class="text-3xl font-semibold mb-4">
+                        Người làm Social Media & Growth Hacker
+                    </h2>
+
+                    <p class="opacity-80 leading-relaxed mb-6">
+                        Tôi giúp cá nhân & doanh nghiệp xây dựng <strong>thương hiệu cá nhân</strong>,
+                        phát triển kênh <strong>TikTok – Facebook – Instagram</strong>,
+                        tạo nội dung viral và chuyển đổi người xem thành khách hàng.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="card p-4 text-center">
+                            <strong class="text-2xl accent">5+</strong>
+                            <p class="text-sm opacity-70 mt-1">Năm kinh nghiệm</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <strong class="text-2xl accent">300+</strong>
+                            <p class="text-sm opacity-70 mt-1">Dự án Social</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <strong class="text-2xl accent">50M+</strong>
+                            <p class="text-sm opacity-70 mt-1">Lượt xem video</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <strong class="text-2xl accent">100K+</strong>
+                            <p class="text-sm opacity-70 mt-1">Follower tăng trưởng</p>
+                        </div>
+                    </div>
+
+                    <p class="mt-6 text-sm opacity-60">
+                        👉 Website dạng profile social – phù hợp bán dịch vụ, quay demo TikTok, giá linh hoạt từ 2$
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <section class="page">
+            <div class="max-w-6xl mx-auto w-full px-6">
+
+                <h2 class="text-3xl font-bold text-center mb-12">
+                    Năng lực chuyên môn Social Media
+                </h2>
+
+                <div class="grid md:grid-cols-3 gap-8">
+
+                    <!-- SKILL 1 -->
+                    <div class="card p-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <i class="fa-brands fa-tiktok text-3xl accent"></i>
+                            <h3 class="text-xl font-semibold">TikTok Growth</h3>
+                        </div>
+
+                        <div class="w-full h-3 rounded-full bg-black/20 overflow-hidden">
+                            <div class="h-full rounded-full" style="width:95%;background:var(--accent)"></div>
+                        </div>
+
+                        <p class="text-sm opacity-70 mt-3">
+                            Tăng trưởng follower, view & chuyển đổi bán hàng.
+                        </p>
+                    </div>
+
+                    <!-- SKILL 2 -->
+                    <div class="card p-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <i class="fa-solid fa-fire text-3xl accent"></i>
+                            <h3 class="text-xl font-semibold">Content Viral</h3>
+                        </div>
+
+                        <div class="w-full h-3 rounded-full bg-black/20 overflow-hidden">
+                            <div class="h-full rounded-full" style="width:90%;background:var(--accent)"></div>
+                        </div>
+
+                        <p class="text-sm opacity-70 mt-3">
+                            Viết kịch bản, hook mạnh, giữ chân người xem.
+                        </p>
+                    </div>
+
+                    <!-- SKILL 3 -->
+                    <div class="card p-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <i class="fa-solid fa-bullseye text-3xl accent"></i>
+                            <h3 class="text-xl font-semibold">Social Branding</h3>
+                        </div>
+
+                        <div class="w-full h-3 rounded-full bg-black/20 overflow-hidden">
+                            <div class="h-full rounded-full" style="width:88%;background:var(--accent)"></div>
+                        </div>
+
+                        <p class="text-sm opacity-70 mt-3">
+                            Xây dựng hình ảnh cá nhân & thương hiệu bền vững.
+                        </p>
+                    </div>
+
+                </div>
+
+                <p class="text-center text-sm opacity-60 mt-10">
+                    👉 Phần kỹ năng có thể tùy chỉnh % – icon – màu sắc cho từng khách hàng
+                </p>
+
+            </div>
+        </section>
+
+
+        <section class="page">
+            <div class="max-w-6xl mx-auto w-full px-6">
+
+                <h2 class="text-3xl font-bold text-center mb-12">
+                    Dịch vụ Social Media chuyên sâu
+                </h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+
+                    <!-- SERVICE 1 -->
+                    <div class="card p-6 text-center group cursor-pointer">
+                        <div class="text-4xl mb-4 accent group-hover:scale-125 transition">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">Video ngắn</h3>
+                        <p class="text-sm opacity-70 mt-2">
+                            Video TikTok – Reels – Shorts chuẩn viral
+                        </p>
+                    </div>
+
+                    <!-- SERVICE 2 -->
+                    <div class="card p-6 text-center group cursor-pointer">
+                        <div class="text-4xl mb-4 accent group-hover:scale-125 transition">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">Kịch bản viral</h3>
+                        <p class="text-sm opacity-70 mt-2">
+                            Hook 3s đầu – giữ chân – CTA bán hàng
+                        </p>
+                    </div>
+
+                    <!-- SERVICE 3 -->
+                    <div class="card p-6 text-center group cursor-pointer">
+                        <div class="text-4xl mb-4 accent group-hover:scale-125 transition">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">Nuôi kênh</h3>
+                        <p class="text-sm opacity-70 mt-2">
+                            Xây dựng kênh từ 0 → 100K follower
+                        </p>
+                    </div>
+
+                    <!-- SERVICE 4 -->
+                    <div class="card p-6 text-center group cursor-pointer">
+                        <div class="text-4xl mb-4 accent group-hover:scale-125 transition">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">Booking KOL</h3>
+                        <p class="text-sm opacity-70 mt-2">
+                            Kết nối KOL đúng tệp – đúng ngành
+                        </p>
+                    </div>
+
+                </div>
+
+                <p class="text-center text-sm opacity-60 mt-10">
+                    👉 Mỗi dịch vụ có thể gắn link riêng – dùng làm landing page bán lẻ từng gói
+                </p>
+
+            </div>
+        </section>
+
+
+        <section class="page">
+            <div class="max-w-6xl mx-auto w-full px-6">
+
+                <h2 class="text-3xl font-bold text-center mb-12">
+                    Bảng giá dịch vụ Social Media
+                </h2>
+
+                <div class="grid md:grid-cols-3 gap-8">
+
+                    <!-- BASIC -->
+                    <div class="card p-8 text-center">
+                        <h3 class="text-xl font-semibold mb-4">Basic</h3>
+                        <p class="text-4xl font-bold accent mb-4">1.500.000đ</p>
+                        <ul class="text-sm opacity-80 space-y-2 mb-6">
+                            <li>✔ 8 video / tháng</li>
+                            <li>✔ Kịch bản cơ bản</li>
+                            <li>✔ Tối ưu hồ sơ</li>
+                            <li>✖ Không cam kết view</li>
+                        </ul>
+                        <p class="text-xs opacity-60">
+                            Phù hợp người mới bắt đầu
+                        </p>
+                    </div>
+
+                    <!-- PRO -->
+                    <div class="card p-8 text-center scale-110 btn relative">
+                        <span class="absolute top-4 right-4 text-xs bg-white text-black px-2 py-1 rounded">
+                            BÁN CHẠY
+                        </span>
+                        <h3 class="text-xl font-semibold mb-4">Pro</h3>
+                        <p class="text-4xl font-bold mb-4">3.000.000đ</p>
+                        <ul class="text-sm space-y-2 mb-6">
+                            <li>✔ 15 video / tháng</li>
+                            <li>✔ Kịch bản viral</li>
+                            <li>✔ Chiến lược tăng trưởng</li>
+                            <li>✔ Báo cáo tuần</li>
+                        </ul>
+                        <p class="text-xs">
+                            Phù hợp cá nhân & shop online
+                        </p>
+                    </div>
+
+                    <!-- BRAND -->
+                    <div class="card p-8 text-center">
+                        <h3 class="text-xl font-semibold mb-4">Brand</h3>
+                        <p class="text-4xl font-bold accent mb-4">5.000.000đ</p>
+                        <ul class="text-sm opacity-80 space-y-2 mb-6">
+                            <li>✔ 30 video / tháng</li>
+                            <li>✔ Xây dựng thương hiệu</li>
+                            <li>✔ Booking KOL</li>
+                            <li>✔ Cam kết KPI</li>
+                        </ul>
+                        <p class="text-xs opacity-60">
+                            Phù hợp doanh nghiệp
+                        </p>
+                    </div>
+
+                </div>
+
+                <p class="text-center text-sm opacity-60 mt-10">
+                    👉 Bảng giá có thể chỉnh nhanh – phù hợp bán web profile giá thấp hoặc dịch vụ cao cấp
+                </p>
+
+            </div>
+        </section>
+
+
+        <section class="page">
+            <div class="max-w-5xl mx-auto w-full">
+                <h2 class="text-3xl font-bold text-center mb-10">Hệ sinh thái dịch vụ Social</h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-brands fa-tiktok text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Nuôi kênh TikTok</h3>
+                        <p class="text-sm opacity-70 mt-2">Xây dựng kênh từ 0 → 100k follower</p>
+                    </a>
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-solid fa-video text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Sản xuất Video</h3>
+                        <p class="text-sm opacity-70 mt-2">Video ngắn chuẩn viral</p>
+                    </a>
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-solid fa-pen-nib text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Viết kịch bản</h3>
+                        <p class="text-sm opacity-70 mt-2">Hook mạnh – Giữ chân người xem</p>
+                    </a>
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-solid fa-chart-line text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Chiến lược tăng trưởng</h3>
+                        <p class="text-sm opacity-70 mt-2">Phân tích – tối ưu – scale</p>
+                    </a>
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-brands fa-facebook text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Quản trị Fanpage</h3>
+                        <p class="text-sm opacity-70 mt-2">Xây dựng cộng đồng bền vững</p>
+                    </a>
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-solid fa-bullhorn text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Chạy quảng cáo</h3>
+                        <p class="text-sm opacity-70 mt-2">Meta Ads – TikTok Ads</p>
+                    </a>
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-solid fa-user-group text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Booking KOL</h3>
+                        <p class="text-sm opacity-70 mt-2">Kết nối KOL phù hợp ngành</p>
+                    </a>
+
+                    <a href="#" class="card p-6 text-center hover:scale-105 transition">
+                        <i class="fa-solid fa-globe text-4xl accent mb-4"></i>
+                        <h3 class="font-semibold">Website cá nhân</h3>
+                        <p class="text-sm opacity-70 mt-2">Profile – Landing page bán hàng</p>
+                    </a>
+
+                </div>
+
+                <p class="text-center mt-10 opacity-70 text-sm">
+                    👉 Mỗi dịch vụ là 1 landing page riêng – dễ tách – dễ bán – giá từ 2$
+                </p>
+            </div>
+        </section>
+
+
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const pages = document.getElementById('pages');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        /* PAGE CONTROL */
+        function goPage(i) {
+            if (i < 0 || i >= navItems.length) return;
+            currentPage = i;
+            pages.style.transform = `translateY(-${i * 100}vh)`;
+            navItems.forEach(n => n.classList.remove('active'));
+            navItems[i].classList.add('active');
+        }
+
+        /* KEYBOARD */
+        document.addEventListener('keydown', e => {
+            if (e.key.includes('Down') || e.key.includes('Right')) goPage(currentPage + 1);
+            if (e.key.includes('Up') || e.key.includes('Left')) goPage(currentPage - 1);
+        });
+
+        /* SWIPE MOBILE */
+        let startY = 0;
+        document.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+        document.addEventListener('touchend', e => {
+            let endY = e.changedTouches[0].clientY;
+            if (startY - endY > 50) goPage(currentPage + 1);
+            if (endY - startY > 50) goPage(currentPage - 1);
+        });
+
+        /* THEME */
+        function changeTheme(t) {
+            document.body.className = t;
+        }
+
+        /* TYPED */
+        new Typed('#typed', {
+            strings: [
+                'Chuyên gia Social Media',
+                'Nhà sáng tạo nội dung',
+                'Huấn luyện TikTok cá nhân'
+            ],
+            typeSpeed: 50, backSpeed: 30, loop: true
+        });
+    </script>
+
+</body>
+
+</html>

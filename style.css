@@ -1,0 +1,111 @@
+
+/* ================= BASE ================= */
+/* ================= BASE ================= */
+body {
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  transition: background .4s, color .4s;
+}
+
+/* ================= PAGE SYSTEM ================= */
+.pages {
+  height: 100vh;
+  transition: transform .8s cubic-bezier(.4,0,.2,1);
+}
+.page {
+  height: 100vh;
+  padding-top: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================= NAV ================= */
+nav {
+  backdrop-filter: blur(12px);
+  background: var(--card);
+}
+.nav-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  position: relative;
+  color: var(--text);
+}
+.nav-item::after {
+  content:'';
+  position:absolute;
+  bottom:-4px;
+  left:0;
+  width:0;
+  height:2px;
+  background:var(--accent);
+  transition:.3s;
+}
+.nav-item.active::after,
+.nav-item:hover::after { width:100%; }
+
+/* ================= CARD ================= */
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  transition:.4s;
+}
+.card:hover {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0 20px 40px rgba(0,0,0,.35);
+}
+
+/* ================= THEME VARIABLES ================= */
+.theme-dark-blue {
+  --bg:#0f172a; --text:#ffffff; --card:#111827; --accent:#3b82f6;
+}
+.theme-dark-purple {
+  --bg:#0b0617; --text:#ffffff; --card:#120b2a; --accent:#a855f7;
+}
+.theme-light-gray {
+  --bg:#f3f4f6; --text:#111111; --card:#ffffff; --accent:#2563eb;
+}
+.theme-sunset {
+  --bg:#1a0f0a; --text:#ffffff; --card:#2a120b; --accent:#fb7185;
+}
+.theme-cyber-green {
+  --bg:#020617; --text:#d1fae5; --card:#022c22; --accent:#22c55e;
+}
+
+/* ================= ACCENT ================= */
+.accent { color: var(--accent); }
+.btn {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ================= THEME SELECT FIX ================= */
+.theme-select {
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,.2);
+}
+
+.theme-select option {
+  background: #ffffff;
+  color: #111111;
+}
+
+/* DARK THEME OPTIONS */
+body.theme-dark-blue .theme-select option,
+body.theme-dark-purple .theme-select option,
+body.theme-sunset .theme-select option,
+body.theme-cyber-green .theme-select option {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width:768px) {
+  .nav-text { display:none; }
+}
+
