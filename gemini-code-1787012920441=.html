@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PowerShell Snippets</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 0.85rem;
+    }
+    /* Hiệu ứng nổi khối Dark Mode */
+    .snippet-card {
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      height: 100%;
+    }
+    .snippet-card:hover {
+      transform: translateY(-4px);
+      border-color: #ffffff !important;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6), 0 0 10px rgba(255, 255, 255, 0.15);
+    }
+    .code-box {
+      background-color: #0d1117;
+      border: 1px solid #30363d;
+      color: #58a6ff;
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.75rem;
+    }
+    .custom-input {
+      background-color: #0d1117 !important;
+      border-color: #30363d !important;
+      color: #ffffff !important;
+      font-size: 0.8rem;
+    }
+    .custom-input:focus {
+      border-color: #ffffff !important;
+      box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.15) !important;
+    }
+    /* Giãn khoảng cách các icon */
+    .icon-spacing {
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body class="min-vh-100 d-flex flex-column">
+
+  <!-- Header -->
+  <header class="border-bottom border-dark bg-black sticky-top px-4 py-3 shadow-sm">
+    <div class="container-fluid d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fa-solid fa-code text-white fs-5"></i>
+        <h1 class="h6 m-0 fw-bold text-white tracking-wide">PowerShell Snippets</h1>
+      </div>
+
+      <!-- Thanh tìm kiếm -->
+      <div class="w-100" style="max-width: 320px;">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-dark border-secondary text-white">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" id="search-input" class="form-control custom-input shadow-none" placeholder="Tìm kiếm nhanh snippet...">
+        </div>
+      </div>
+      
+      <div class="d-flex align-items-center gap-2">
+        <button id="btn-import" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1">
+          <i class="fa-solid fa-upload"></i> Import
+        </button>
+        <button id="btn-export" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1">
+          <i class="fa-solid fa-download"></i> Export
+        </button>
+        <button id="btn-add-new" class="btn btn-sm btn-light text-dark fw-semibold d-flex align-items-center gap-1">
+          <i class="fa-solid fa-plus"></i> Thêm mới
+        </button>
+        <input type="file" id="file-import" accept=".json,.ps1,.txt,.bat,.cmd" multiple class="d-none">
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Grid (Tối đa 6 item trên 1 hàng) -->
+  <main class="container-fluid p-4 flex-grow-1">
+    <div id="snippet-list" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-3">
+      <!-- Render bằng JavaScript -->
+    </div>
+  </main>
+
+  <!-- Modal Thêm / Sửa -->
+  <div class="modal fade" id="edit-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-black border border-secondary shadow-lg">
+        <div class="modal-header border-bottom border-secondary py-2.5">
+          <h5 id="edit-title" class="modal-title fs-6 text-uppercase fw-semibold text-white">Thêm Snippet</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">Tiêu đề</label>
+            <input type="text" id="snippet-name" placeholder="Tên chức năng..." class="form-control custom-input shadow-none">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">Mô tả (Tùy chọn)</label>
+            <input type="text" id="snippet-desc" placeholder="Mô tả ngắn gọn..." class="form-control custom-input shadow-none">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">
+              PowerShell Code <span class="text-white lowercase">(dùng <code>{{Bien}}</code> để tạo ô nhập động)</span>
+            </label>
+            <textarea id="snippet-code" rows="6" placeholder="Get-Process ..." class="form-control custom-input code-box shadow-none resize-y"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-top border-secondary py-2">
+          <button type="button" id="btn-delete" class="btn btn-sm btn-outline-danger me-auto d-none">
+            <i class="fa-solid fa-trash-can"></i> Xóa
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" id="btn-save" class="btn btn-sm btn-light text-dark fw-semibold">Lưu lại</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- JavaScript xử lý logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let snippets = JSON.parse(localStorage.getItem('dark_black_snippets')) || [
+        {
+          id: '1',
+          name: 'Kiểm tra dịch vụ Windows',
+          desc: 'Kiểm tra trạng thái service từ xa',
+          code: 'Get-Service -Name "{{ServiceName}}" -ComputerName {{ComputerName}}'
+        }
+      ];
+
+      let currentEditId = null;
+      let searchQuery = '';
+
+      const randomIcons = [
+        'fa-terminal', 'fa-bolt', 'fa-shield-halved', 'fa-cogs', 
+        'fa-microchip', 'fa-network-wired', 'fa-database', 'fa-server',
+        'fa-laptop-code', 'fa-gears', 'fa-code-branch', 'fa-cube'
+      ];
+
+      function getRandomIcon(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return randomIcons[Math.abs(hash) % randomIcons.length];
+      }
+
+      const snippetList = document.getElementById('snippet-list');
+      const searchInput = document.getElementById('search-input');
+      const modalElement = document.getElementById('edit-modal');
+      const bsModal = new bootstrap.Modal(modalElement);
+
+      const inputName = document.getElementById('snippet-name');
+      const inputDesc = document.getElementById('snippet-desc');
+      const inputCode = document.getElementById('snippet-code');
+      const editTitle = document.getElementById('edit-title');
+      const btnDelete = document.getElementById('btn-delete');
+
+      renderList();
+
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase().trim();
+        renderList();
+      });
+
+      function saveSnippets() {
+        localStorage.setItem('dark_black_snippets', JSON.stringify(snippets));
+        renderList();
+      }
+
+      function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substring(2);
+      }
+
+      function extractVariables(template) {
+        const matches = [...template.matchAll(/\{\{([^}]+)\}\}/g)];
+        return [...new Set(matches.map(m => m[1]))];
+      }
+
+      function renderList() {
+        snippetList.innerHTML = '';
+        
+        const filtered = snippets.filter(s => 
+          s.name.toLowerCase().includes(searchQuery) || 
+          (s.desc && s.desc.toLowerCase().includes(searchQuery)) ||
+          s.code.toLowerCase().includes(searchQuery)
+        );
+
+        if (filtered.length === 0) {
+          snippetList.innerHTML = `
+            <div class="col-12 text-center py-5 text-white-50 border border-dashed border-secondary rounded-3 fs-7 bg-black">
+              Không tìm thấy snippet phù hợp.
+            </div>`;
+          return;
+        }
+
+        filtered.forEach(snippet => {
+          const col = document.createElement('div');
+          col.className = 'col';
+
+          const card = document.createElement('div');
+          card.className = 'snippet-card rounded-3 p-3 d-flex flex-column shadow-sm';
+          
+          const variables = extractVariables(snippet.code);
+          let variablesHTML = '';
+          let varButtonHTML = '';
+          const iconClass = getRandomIcon(snippet.id + snippet.name);
+          
+          if (variables.length > 0) {
+            varButtonHTML = `
+              <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none btn-toggle-vars" data-id="${snippet.id}" title="Nhập giá trị biến">
+                <i class="fa-solid fa-sliders fs-7"></i>
+              </button>
+            `;
+
+            variablesHTML = `
+              <div id="vars-container-${snippet.id}" class="snippet-vars d-none pt-2 border-top border-secondary mt-2 g-2">
+                <div class="text-[10px] text-white fw-medium mb-1">Biến động:</div>
+            `;
+            variables.forEach(v => {
+              variablesHTML += `
+                <div class="input-group input-group-sm mb-1">
+                  <span class="input-group-text bg-black border-secondary text-white fs-8">${v}:</span>
+                  <input type="text" class="dynamic-var-input form-control custom-input shadow-none fs-8 py-1" data-snippet-id="${snippet.id}" data-var="${v}" placeholder="Nhập giá trị...">
+                </div>
+              `;
+            });
+            variablesHTML += `</div>`;
+          }
+
+          card.innerHTML = `
+            <!-- Header -->
+            <div class="snippet-header d-flex justify-content-between align-items-center cursor-pointer select-none gap-2">
+              <h3 class="h6 m-0 text-truncate text-white fw-semibold fs-8" title="${escapeHTML(snippet.name)}">${escapeHTML(snippet.name)}</h3>
+              
+              <div class="d-flex align-items-center icon-spacing flex-shrink-0">
+                <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none btn-copy" data-id="${snippet.id}" title="Sao chép Code">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+                ${varButtonHTML}
+                <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none btn-edit" data-id="${snippet.id}" title="Chỉnh sửa">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <span class="toggle-icon text-white-50 transition-transform px-1" style="font-size: 0.7rem;">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </span>
+              </div>
+            </div>
+
+            <!-- Vùng nhập biến -->
+            ${variablesHTML}
+
+            <!-- Chi tiết ẩn/hiện -->
+            <div class="snippet-details d-none pt-2 border-top border-secondary mt-2 mt-auto d-flex flex-column gap-2">
+              ${snippet.desc ? `<p class="text-white-50 m-0 fst-italic fs-8">${escapeHTML(snippet.desc)}</p>` : ''}
+              <div class="code-box p-2 rounded-2 overflow-x-auto max-h-40 d-flex align-items-start gap-2">
+                <i class="fa-solid ${iconClass} text-white mt-0.5 flex-shrink-0"></i>
+                <pre class="m-0 text-wrap text-break w-100 font-monospace text-white" id="preview-${snippet.id}">${escapeHTML(snippet.code)}</pre>
+              </div>
+            </div>
+          `;
+          
+          col.appendChild(card);
+          snippetList.appendChild(col);
+        });
+
+        // Toggle hiển thị chi tiết
+        document.querySelectorAll('.snippet-header').forEach(header => {
+          header.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-edit') || e.target.closest('.btn-copy') || e.target.closest('.btn-toggle-vars')) return;
+            const card = header.closest('.snippet-card');
+            const details = card.querySelector('.snippet-details');
+            const icon = card.querySelector('.toggle-icon');
+            
+            details.classList.toggle('d-none');
+            icon.style.transform = details.classList.contains('d-none') ? 'rotate(0deg)' : 'rotate(180deg)';
+          });
+        });
+
+        // Toggle vùng nhập biến
+        document.querySelectorAll('.btn-toggle-vars').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = e.currentTarget.dataset.id;
+            const varsContainer = document.getElementById(`vars-container-${id}`);
+            if (varsContainer) {
+              varsContainer.classList.toggle('d-none');
+            }
+          });
+        });
+
+        // Cập nhật biến realtime
+        document.querySelectorAll('.dynamic-var-input').forEach(input => {
+          input.addEventListener('input', (e) => {
+            const snippetId = e.target.dataset.snippetId;
+            const snippet = snippets.find(s => s.id === snippetId);
+            if (!snippet) return;
+
+            let finalCode = snippet.code;
+            const inputs = document.querySelectorAll(`input[data-snippet-id="${snippetId}"]`);
+            inputs.forEach(inp => {
+              const varName = inp.dataset.var;
+              const val = inp.value || `{{${varName}}}`;
+              finalCode = finalCode.replace(new RegExp(`\\{\\{${varName}\\}\\}`, 'g'), val);
+            });
+            const previewEl = document.getElementById(`preview-${snippetId}`);
+            if (previewEl) previewEl.innerText = finalCode;
+          });
+        });
+
+        // Sao chép code
+        document.querySelectorAll('.btn-copy').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = e.currentTarget.dataset.id;
+            const previewEl = document.getElementById(`preview-${id}`);
+            let finalCode = '';
+            if (previewEl && !previewEl.closest('.snippet-details').classList.contains('d-none')) {
+              finalCode = previewEl.innerText;
+            } else {
+              const snippet = snippets.find(s => s.id === id);
+              finalCode = snippet ? snippet.code : '';
+            }
+            
+            navigator.clipboard.writeText(finalCode);
+            
+            const icon = e.currentTarget.querySelector('i');
+            icon.className = 'fa-solid fa-check text-white';
+            setTimeout(() => {
+              icon.className = 'fa-regular fa-copy';
+            }, 1200);
+          });
+        });
+
+        // Sửa snippet
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openModal(e.currentTarget.dataset.id);
+          });
+        });
+      }
+
+      function openModal(id = null) {
+        currentEditId = id;
+        if (id) {
+          const snippet = snippets.find(s => s.id === id);
+          inputName.value = snippet.name;
+          inputDesc.value = snippet.desc || '';
+          inputCode.value = snippet.code;
+          editTitle.innerText = 'Chỉnh sửa Snippet';
+          btnDelete.classList.remove('d-none');
+        } else {
+          inputName.value = '';
+          inputDesc.value = '';
+          inputCode.value = '';
+          editTitle.innerText = 'Thêm Snippet Mới';
+          btnDelete.classList.add('d-none');
+        }
+        bsModal.show();
+      }
+
+      document.getElementById('btn-add-new').addEventListener('click', () => openModal(null));
+
+      document.getElementById('btn-save').addEventListener('click', () => {
+        const name = inputName.value.trim();
+        const desc = inputDesc.value.trim();
+        const code = inputCode.value.trim();
+        if (!name || !code) {
+          alert("Vui lòng điền tiêu đề và mã code!");
+          return;
+        }
+        if (currentEditId) {
+          const index = snippets.findIndex(s => s.id === currentEditId);
+          if (index !== -1) snippets[index] = { id: currentEditId, name, desc, code };
+        } else {
+          snippets.push({ id: generateId(), name, desc, code });
+        }
+        saveSnippets();
+        bsModal.hide();
+      });
+
+      btnDelete.addEventListener('click', () => {
+        if (confirm('Xóa snippet này?')) {
+          snippets = snippets.filter(s => s.id !== currentEditId);
+          saveSnippets();
+          bsModal.hide();
+        }
+      });
+
+      document.getElementById('btn-export').addEventListener('click', () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ snippets }, null, 2));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", `snippets-backup.json`);
+        dlAnchorElem.click();
+      });
+
+      const fileImport = document.getElementById('file-import');
+      document.getElementById('btn-import').addEventListener('click', () => fileImport.click());
+      
+      fileImport.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (!files.length) return;
+
+        let count = 0;
+        Array.from(files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const text = event.target.result;
+            if (file.name.toLowerCase().endsWith('.json')) {
+              try {
+                const data = JSON.parse(text);
+                if (data.snippets) snippets.push(...data.snippets);
+              } catch (err) {}
+            } else {
+              const cleanName = file.name.replace(/\.[^/.]+$/, "");
+              snippets.push({ id: generateId(), name: cleanName, desc: `Import từ file: ${file.name}`, code: text });
+            }
+            count++;
+            if (count === files.length) {
+              saveSnippets();
+              alert(`Import thành công ${files.length} tệp.`);
+              fileImport.value = '';
+            }
+          };
+          reader.readAsText(file);
+        });
+      });
+
+      function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+      }
+    });
+  </script>
+</body>
+</html>
