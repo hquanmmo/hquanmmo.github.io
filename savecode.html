@@ -3,85 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PowerShell Snippets</title>
+  <title>PowerShell Snippets Dashboard</title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
       <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;🚀&lt;/text&gt;&lt;/svg&gt;">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --bg-main: #0d1117;
+      --bg-card: #161b22;
+      --border-color: #30363d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-blue: #58a6ff;
+    }
+
     body {
-      background-color: #0d1117;
-      color: #ffffff;
-      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.85rem;
     }
-    /* Hiệu ứng nổi khối Dark Mode */
+
+    /* Hiệu ứng nổi khối & Card */
     .snippet-card {
-      background-color: #161b22;
-      border: 1px solid #30363d;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       height: 100%;
+      border-radius: 8px;
     }
     .snippet-card:hover {
-      transform: translateY(-4px);
-      border-color: #ffffff !important;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6), 0 0 10px rgba(255, 255, 255, 0.15);
+      transform: translateY(-3px);
+      border-color: var(--text-muted) !important;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 8px rgba(88, 166, 255, 0.15);
     }
+
     .code-box {
-      background-color: #0d1117;
-      border: 1px solid #30363d;
-      color: #58a6ff;
-      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background-color: var(--bg-main);
+      border: 1px solid var(--border-color);
+      color: var(--accent-blue);
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
       font-size: 0.75rem;
+      border-radius: 6px;
     }
+
     .custom-input {
-      background-color: #0d1117 !important;
-      border-color: #30363d !important;
-      color: #ffffff !important;
+      background-color: var(--bg-main) !important;
+      border-color: var(--border-color) !important;
+      color: var(--text-main) !important;
       font-size: 0.8rem;
+      border-radius: 6px;
     }
     .custom-input:focus {
-      border-color: #ffffff !important;
-      box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.15) !important;
+      border-color: var(--accent-blue) !important;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15) !important;
     }
+    
     textarea.custom-input {
       resize: vertical;
-      min-height: 38px;
+      min-height: 40px;
     }
-    .icon-spacing {
-      gap: 0.5rem;
+
+    .header-bar {
+      background-color: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Tùy chỉnh thanh cuộn */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
     }
   </style>
 </head>
 <body class="min-vh-100 d-flex flex-column">
 
-  <!-- Header -->
-  <header class="border-bottom border-dark bg-black sticky-top px-4 py-3 shadow-sm">
-    <div class="container-fluid d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+  <!-- Header Dashboard -->
+  <header class="header-bar sticky-top px-4 py-3 shadow-sm">
+    <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
       <div class="d-flex align-items-center gap-2">
-        <i class="fa-solid fa-code text-white fs-5"></i>
-        <h1 class="h6 m-0 fw-bold text-white tracking-wide">PowerShell Snippets</h1>
+        <div class="bg-dark border border-secondary p-2 rounded-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+          <i class="fa-solid fa-terminal text-light"></i>
+        </div>
+        <div>
+          <h1 class="h6 m-0 fw-bold text-white">PowerShell Snippet Hub</h1>
+          <span class="text-white-50" style="font-size: 0.75rem;">Quản lý và thực thi mã nguồn nhanh</span>
+        </div>
       </div>
 
       <!-- Thanh tìm kiếm -->
-      <div class="w-100" style="max-width: 320px;">
+      <div class="w-100" style="max-width: 360px;">
         <div class="input-group input-group-sm">
-          <span class="input-group-text bg-dark border-secondary text-white">
+          <span class="input-group-text bg-dark border-secondary text-white-50">
             <i class="fa-solid fa-magnifying-glass"></i>
           </span>
-          <input type="text" id="search-input" class="form-control custom-input shadow-none" placeholder="Tìm kiếm nhanh snippet...">
+          <input type="text" id="search-input" class="form-control custom-input shadow-none" placeholder="Tìm kiếm nhanh theo tên, mô tả hoặc code...">
         </div>
       </div>
       
+      <!-- Nút chức năng -->
       <div class="d-flex align-items-center gap-2">
-        <button id="btn-import" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1">
+        <button id="btn-import" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1.5 px-3">
           <i class="fa-solid fa-upload"></i> Import
         </button>
-        <button id="btn-export" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1">
+        <button id="btn-export" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1.5 px-3">
           <i class="fa-solid fa-download"></i> Export
         </button>
-        <button id="btn-add-new" class="btn btn-sm btn-light text-dark fw-semibold d-flex align-items-center gap-1">
+        <button id="btn-add-new" class="btn btn-sm btn-light text-dark fw-semibold d-flex align-items-center gap-1.5 px-3">
           <i class="fa-solid fa-plus"></i> Thêm mới
         </button>
         <input type="file" id="file-import" accept=".json,.ps1,.txt,.bat,.cmd" multiple class="d-none">
@@ -91,41 +132,43 @@
 
   <!-- Main Content Grid -->
   <main class="container-fluid p-4 flex-grow-1">
-    <div id="snippet-list" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-3">
+    <div id="snippet-list" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-6 g-3">
       <!-- Render bằng JavaScript -->
     </div>
   </main>
 
-  <!-- Modal Thêm / Sửa -->
+  <!-- Modal Thêm / Sửa Snippet -->
   <div class="modal fade" id="edit-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content bg-black border border-secondary shadow-lg">
-        <div class="modal-header border-bottom border-secondary py-2.5">
+        <div class="modal-header border-bottom border-secondary py-3">
           <h5 id="edit-title" class="modal-title fs-6 text-uppercase fw-semibold text-white">Thêm Snippet</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-4">
-          <div class="mb-3">
-            <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">Tiêu đề</label>
-            <input type="text" id="snippet-name" placeholder="Tên chức năng..." class="form-control custom-input shadow-none">
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">Mô tả (Tùy chọn)</label>
-            <input type="text" id="snippet-desc" placeholder="Mô tả ngắn gọn..." class="form-control custom-input shadow-none">
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">
-              PowerShell Code <span class="text-white lowercase">(dùng <code>{{Bien}}</code> để tạo ô nhập động)</span>
-            </label>
-            <textarea id="snippet-code" rows="8" placeholder="Get-Process ..." class="form-control custom-input code-box shadow-none"></textarea>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">Tiêu đề</label>
+              <input type="text" id="snippet-name" placeholder="Ví dụ: Tạo thư mục hàng loạt..." class="form-control custom-input shadow-none">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">Mô tả ngắn (Tùy chọn)</label>
+              <input type="text" id="snippet-desc" placeholder="Mô tả công dụng..." class="form-control custom-input shadow-none">
+            </div>
+            <div class="col-12">
+              <label class="form-label text-white-50 fs-7 text-uppercase fw-medium mb-1">
+                PowerShell Code <span class="text-info lowercase">(dùng định dạng <code>{{TenBien}}</code> để tạo ô nhập động)</span>
+              </label>
+              <textarea id="snippet-code" rows="10" placeholder="Nhập mã PowerShell tại đây..." class="form-control custom-input code-box shadow-none"></textarea>
+            </div>
           </div>
         </div>
-        <div class="modal-footer border-top border-secondary py-2">
-          <button type="button" id="btn-delete" class="btn btn-sm btn-outline-danger me-auto d-none">
-            <i class="fa-solid fa-trash-can"></i> Xóa
+        <div class="modal-footer border-top border-secondary py-3">
+          <button type="button" id="btn-delete" class="btn btn-sm btn-outline-danger me-auto d-none px-3">
+            <i class="fa-solid fa-trash-can"></i> Xóa snippet
           </button>
-          <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal">Hủy</button>
-          <button type="button" id="btn-save" class="btn btn-sm btn-light text-dark fw-semibold">Lưu lại</button>
+          <button type="button" class="btn btn-sm btn-outline-light px-3" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" id="btn-save" class="btn btn-sm btn-light text-dark fw-semibold px-4">Lưu lại</button>
         </div>
       </div>
     </div>
@@ -142,7 +185,7 @@
           id: '1',
           name: 'Tạo thư mục cha và con',
           desc: 'Tạo thư mục cha $parent và các thư mục con từ danh sách',
-          code: `<#\nCode tạo thư mục cha $parent và các thư mục con $folders CMD nhanh trong thư mục đang chạy code CMD\n#>\n\n#đổi tên thư mục cha\n$parent = "{{Parent}}"\n#thay thế các thư mục con\n$folders = @'\n{{Children}}\n'@ -split '\\r?\\n' | Where-Object { $_.Trim() }\n\nNew-Item -ItemType Directory -Path $parent -Force | Out-Null\n\nforeach ($folder in $folders) {\n    New-Item -ItemType Directory -Path "$parent\\$folder" -Force | Out-Null\n}\n\nWrite-Host "Đã tạo xong thư mục $parent."`
+          code: `<#\nCode tạo thư mục cha $parent và các thư mục con $folders nhanh\n#>\n\n# Tên thư mục cha (hỗ trợ 1 dòng hoặc nhiều dòng)\n$parent = "{{Parent}}"\n\n# Danh sách thư mục con\n$folders = @'\n{{Children}}\n'@ -split '\\r?\\n' | Where-Object { $_.Trim() }\n\nNew-Item -ItemType Directory -Path $parent -Force | Out-Null\n\nforeach ($folder in $folders) {\n    New-Item -ItemType Directory -Path "$parent\\$folder" -Force | Out-Null\n}\n\nWrite-Host "Đã tạo xong thư mục $parent."`
         }
       ];
 
@@ -195,7 +238,7 @@
         return [...new Set(matches.map(m => m[1]))];
       }
 
-      // Thay thế trực tiếp giá trị vào code (hỗ trợ cả 1 dòng lẫn nhiều dòng tự nhiên)
+      // Thay thế an toàn tuyệt đối, chống lỗi ký tự đặc biệt ($ hoặc \)
       function getFinalCode(snippetId, originalCode) {
         let finalCode = originalCode;
         const inputs = document.querySelectorAll(`.dynamic-var-input[data-snippet-id="${snippetId}"]`);
@@ -207,7 +250,7 @@
           if (!val.trim()) {
             val = `{{${varName}}}`;
           }
-          finalCode = finalCode.replace(new RegExp(`\\{\\{${varName}\\}\\}`, 'g'), val);
+          finalCode = finalCode.replace(new RegExp(`\\{\\{${varName}\\}\\}`, 'g'), () => val);
         });
         
         return finalCode;
@@ -225,7 +268,8 @@
         if (filtered.length === 0) {
           snippetList.innerHTML = `
             <div class="col-12 text-center py-5 text-white-50 border border-dashed border-secondary rounded-3 fs-7 bg-black">
-              Không tìm thấy snippet phù hợp.
+              <i class="fa-regular fa-folder-open fs-3 mb-2 d-block"></i>
+              Không tìm thấy snippet phù hợp với từ khóa của bạn.
             </div>`;
           return;
         }
@@ -244,20 +288,20 @@
           
           if (variables.length > 0) {
             varButtonHTML = `
-              <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none btn-toggle-vars" data-id="${snippet.id}" title="Nhập giá trị biến">
-                <i class="fa-solid fa-sliders fs-7"></i>
+              <button class="btn btn-sm btn-outline-secondary text-light px-2 py-1 btn-toggle-vars" data-id="${snippet.id}" title="Nhập giá trị biến động">
+                <i class="fa-solid fa-sliders fs-8"></i> <span class="fs-8">Biến</span>
               </button>
             `;
 
             variablesHTML = `
-              <div id="vars-container-${snippet.id}" class="snippet-vars d-none pt-2 border-top border-secondary mt-2 g-2">
-                <div class="text-[10px] text-white fw-medium mb-1">Biến động (nhập 1 dòng hoặc dán nhiều dòng):</div>
+              <div id="vars-container-${snippet.id}" class="snippet-vars d-none pt-2 border-top border-secondary mt-2">
+                <div class="text-info fs-8 fw-medium mb-1"><i class="fa-solid fa-pen-to-square"></i> Nhập giá trị (hỗ trợ 1 hoặc nhiều dòng):</div>
             `;
             variables.forEach(v => {
               variablesHTML += `
                 <div class="mb-2">
-                  <label class="form-label text-white-50 fs-8 mb-1">${v}:</label>
-                  <textarea class="dynamic-var-input form-control custom-input shadow-none fs-8 py-1" rows="2" data-snippet-id="${snippet.id}" data-var="${v}" placeholder="Nhập hoặc dán giá trị..."></textarea>
+                  <label class="form-label text-white-50 fs-8 mb-1 fw-medium">${v}:</label>
+                  <textarea class="dynamic-var-input form-control custom-input shadow-none fs-8 py-1.5" rows="2" data-snippet-id="${snippet.id}" data-var="${v}" placeholder="Nhập hoặc dán danh sách..."></textarea>
                 </div>
               `;
             });
@@ -265,32 +309,42 @@
           }
 
           card.innerHTML = `
-            <!-- Header -->
-            <div class="snippet-header d-flex justify-content-between align-items-center cursor-pointer select-none gap-2">
-              <h3 class="h6 m-0 text-truncate text-white fw-semibold fs-8" title="${escapeHTML(snippet.name)}">${escapeHTML(snippet.name)}</h3>
+            <!-- Header Card -->
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div class="d-flex align-items-center gap-2 overflow-hidden cursor-pointer snippet-header flex-grow-1">
+                <i class="fa-solid ${iconClass} text-info fs-6 flex-shrink-0"></i>
+                <h3 class="h6 m-0 text-truncate text-white fw-semibold fs-8" title="${escapeHTML(snippet.name)}">${escapeHTML(snippet.name)}</h3>
+              </div>
               
-              <div class="d-flex align-items-center icon-spacing flex-shrink-0">
-                <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none btn-copy" data-id="${snippet.id}" title="Sao chép Code">
-                  <i class="fa-regular fa-copy"></i>
+              <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                <button class="btn btn-sm btn-dark border-secondary text-light px-2 py-1 btn-copy" data-id="${snippet.id}" title="Sao chép Code">
+                  <i class="fa-regular fa-copy"></i> Copy
                 </button>
-                ${varButtonHTML}
-                <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none btn-edit" data-id="${snippet.id}" title="Chỉnh sửa">
-                  <i class="fa-solid fa-pen"></i>
+              </div>
+            </div>
+
+            <!-- Mô tả ngắn -->
+            ${snippet.desc ? `<p class="text-white-50 m-0 fst-italic fs-8 mb-2 text-truncate" title="${escapeHTML(snippet.desc)}">${escapeHTML(snippet.desc)}</p>` : ''}
+
+            <!-- Nút điều khiển biến & chi tiết -->
+            <div class="d-flex align-items-center justify-content-between gap-2 mt-auto pt-2 border-top border-secondary">
+              ${varButtonHTML}
+              <div class="d-flex align-items-center gap-2 ms-auto">
+                <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none btn-edit fs-8" data-id="${snippet.id}" title="Chỉnh sửa">
+                  <i class="fa-solid fa-pen"></i> Sửa
                 </button>
-                <span class="toggle-icon text-white-50 transition-transform px-1" style="font-size: 0.7rem;">
-                  <i class="fa-solid fa-chevron-down"></i>
-                </span>
+                <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none snippet-toggle-details fs-8" title="Xem trước code">
+                  <span class="toggle-text">Code</span> <i class="fa-solid fa-chevron-down fs-9"></i>
+                </button>
               </div>
             </div>
 
             <!-- Vùng nhập biến -->
             ${variablesHTML}
 
-            <!-- Chi tiết ẩn/hiện -->
-            <div class="snippet-details d-none pt-2 border-top border-secondary mt-2 mt-auto d-flex flex-column gap-2">
-              ${snippet.desc ? `<p class="text-white-50 m-0 fst-italic fs-8">${escapeHTML(snippet.desc)}</p>` : ''}
-              <div class="code-box p-2 rounded-2 overflow-x-auto max-h-40 d-flex align-items-start gap-2">
-                <i class="fa-solid ${iconClass} text-white mt-0.5 flex-shrink-0"></i>
+            <!-- Code Preview Ẩn/Hiện -->
+            <div class="snippet-details d-none pt-2 border-top border-secondary mt-2">
+              <div class="code-box p-2 rounded-2 overflow-x-auto max-h-40">
                 <pre class="m-0 text-wrap text-break w-100 font-monospace text-white" id="preview-${snippet.id}">${escapeHTML(snippet.code)}</pre>
               </div>
             </div>
@@ -300,16 +354,19 @@
           snippetList.appendChild(col);
         });
 
-        // Toggle hiển thị chi tiết
-        document.querySelectorAll('.snippet-header').forEach(header => {
-          header.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-edit') || e.target.closest('.btn-copy') || e.target.closest('.btn-toggle-vars')) return;
-            const card = header.closest('.snippet-card');
+        // Toggle hiển thị chi tiết code
+        document.querySelectorAll('.snippet-toggle-details, .snippet-header').forEach(el => {
+          el.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-edit') || e.target.closest('.btn-copy') || e.target.closest('.btn-toggle-vars') || e.target.closest('.dynamic-var-input')) return;
+            const card = el.closest('.snippet-card');
             const details = card.querySelector('.snippet-details');
-            const icon = card.querySelector('.toggle-icon');
+            const toggleText = card.querySelector('.toggle-text');
+            const icon = card.querySelector('.snippet-toggle-details i');
             
             details.classList.toggle('d-none');
-            icon.style.transform = details.classList.contains('d-none') ? 'rotate(0deg)' : 'rotate(180deg)';
+            const isHidden = details.classList.contains('d-none');
+            if (toggleText) toggleText.innerText = isHidden ? 'Code' : 'Ẩn';
+            if (icon) icon.className = isHidden ? 'fa-solid fa-chevron-down fs-9' : 'fa-solid fa-chevron-up fs-9';
           });
         });
 
@@ -325,7 +382,7 @@
           });
         });
 
-        // Cập nhật biến realtime
+        // Cập nhật biến realtime vào preview
         document.querySelectorAll('.dynamic-var-input').forEach(input => {
           input.addEventListener('input', (e) => {
             const snippetId = e.target.dataset.snippetId;
@@ -350,10 +407,12 @@
               navigator.clipboard.writeText(finalCode);
             }
             
-            const icon = e.currentTarget.querySelector('i');
-            icon.className = 'fa-solid fa-check text-white';
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-success"></i> Đã chép';
+            btn.classList.add('border-success');
             setTimeout(() => {
-              icon.className = 'fa-regular fa-copy';
+              btn.innerHTML = originalHTML;
+              btn.classList.remove('border-success');
             }, 1200);
           });
         });
@@ -393,7 +452,7 @@
         const desc = inputDesc.value.trim();
         const code = inputCode.value.trim();
         if (!name || !code) {
-          alert("Vui lòng điền tiêu đề và mã code!");
+          alert("Vui lòng điền đầy đủ tiêu đề và mã code PowerShell!");
           return;
         }
         if (currentEditId) {
@@ -407,21 +466,23 @@
       });
 
       btnDelete.addEventListener('click', () => {
-        if (confirm('Xóa snippet này?')) {
+        if (confirm('Bạn có chắc chắn muốn xóa snippet này?')) {
           snippets = snippets.filter(s => s.id !== currentEditId);
           saveSnippets();
           bsModal.hide();
         }
       });
 
+      // Export file JSON backup
       document.getElementById('btn-export').addEventListener('click', () => {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ snippets }, null, 2));
         const dlAnchorElem = document.createElement('a');
         dlAnchorElem.setAttribute("href", dataStr);
-        dlAnchorElem.setAttribute("download", `snippets-backup.json`);
+        dlAnchorElem.setAttribute("download", `powershell-snippets-backup.json`);
         dlAnchorElem.click();
       });
 
+      // Import file
       const fileImport = document.getElementById('file-import');
       document.getElementById('btn-import').addEventListener('click', () => fileImport.click());
       
@@ -446,7 +507,7 @@
             count++;
             if (count === files.length) {
               saveSnippets();
-              alert(`Import thành công ${files.length} tệp.`);
+              alert(`Import thành công ${files.length} tệp tin.`);
               fileImport.value = '';
             }
           };
