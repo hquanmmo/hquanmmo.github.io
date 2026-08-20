@@ -2,2342 +2,623 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>2FA Authenticator — QR · Secret · Migration</title>
 
-<title>2FA Tool</title>
-
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<!-- CDN: UI + icons + QR/OCR/OTP libraries -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/otpauth@9.1.4/dist/otpauth.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
+
 <style>
-*{
-    box-sizing:border-box;
-}
-
 :root{
-    --bg:#080b12;
-    --card:#111722;
-    --card2:#151d2b;
-    --border:rgba(255,255,255,.09);
-    --text:#f5f7fb;
-    --muted:#8c97aa;
-    --primary:#6675ff;
-    --primary2:#8b5cf6;
-    --green:#20d89a;
-    --red:#ff6378;
-    --yellow:#ffca58;
+ --bg:#080b12;--card:#111722;--card2:#151d2b;--border:rgba(255,255,255,.09);
+ --text:#f5f7fb;--muted:#8c97aa;--primary:#6675ff;--primary2:#8b5cf6;
+ --green:#20d89a;--red:#ff6378;--yellow:#ffca58;
 }
-
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden}
 body{
-    margin:0;
-    min-height:100vh;
-    color:var(--text);
-    font-family:
-        Inter,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-
-    background:
-        radial-gradient(
-            circle at 15% 10%,
-            rgba(102,117,255,.18),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 10%,
-            rgba(139,92,246,.14),
-            transparent 30%
-        ),
-        var(--bg);
+ color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+ background:
+ radial-gradient(circle at 10% 0%,rgba(102,117,255,.18),transparent 28%),
+ radial-gradient(circle at 90% 0%,rgba(139,92,246,.14),transparent 28%),
+ var(--bg);
 }
-
-.container{
-    width:min(1100px,calc(100% - 30px));
-    margin:0 auto;
-    padding:35px 0 50px;
-}
-
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{height:100dvh;display:grid;grid-template-rows:58px 1fr 34px}
 .header{
-    text-align:center;
-    margin-bottom:28px;
+ display:flex;align-items:center;gap:14px;padding:0 20px;
+ border-bottom:1px solid var(--border);background:rgba(8,11,18,.82);backdrop-filter:blur(18px);
 }
-
-.logo{
-    width:64px;
-    height:64px;
-    border-radius:18px;
-    margin:auto;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:30px;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--primary),
-            var(--primary2)
-        );
-
-    box-shadow:
-        0 20px 50px rgba(102,117,255,.25);
+.brand{display:flex;align-items:center;gap:10px;min-width:205px}
+.logo{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+ background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 10px 28px rgba(102,117,255,.25)}
+.brand-title{font-weight:800;font-size:14px}.brand-sub{font-size:9px;color:var(--muted);margin-top:1px}
+.nav{display:flex;align-items:center;gap:4px;flex:1;justify-content:center}
+.nav button{
+ border:1px solid transparent;background:transparent;color:var(--muted);padding:8px 12px;border-radius:9px;
+ font-size:11px;font-weight:700;display:flex;align-items:center;gap:7px;transition:.15s
 }
-
-h1{
-    margin:16px 0 7px;
-    font-size:30px;
-}
-
-.subtitle{
-    color:var(--muted);
-    font-size:13px;
-}
-
-.main{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:18px;
-}
-
+.nav button:hover{background:rgba(255,255,255,.05);color:white}
+.nav button.active{background:rgba(102,117,255,.12);border-color:rgba(102,117,255,.2);color:#bfc5ff}
+.header-badge{font-size:9px;color:#58e5b0;background:rgba(32,216,154,.08);border:1px solid rgba(32,216,154,.15);padding:5px 8px;border-radius:999px}
+.main{min-height:0;padding:14px 18px}
+.view{height:100%;display:none;min-height:0}.view.active{display:block}
+.grid2{height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 .card{
-    background:rgba(17,23,34,.86);
-    border:1px solid var(--border);
-    border-radius:22px;
-    padding:20px;
-
-    backdrop-filter:blur(18px);
-
-    box-shadow:
-        0 20px 60px rgba(0,0,0,.25);
+ height:100%;min-height:0;background:rgba(17,23,34,.86);border:1px solid var(--border);border-radius:18px;
+ padding:16px;backdrop-filter:blur(18px);box-shadow:0 18px 55px rgba(0,0,0,.23);overflow:hidden
 }
-
-.card-header{
-    display:flex;
-    align-items:center;
-    gap:11px;
-    margin-bottom:18px;
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.card-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(102,117,255,.12);color:#aeb7ff}
+.card-title{font-size:14px;font-weight:800}.card-sub{font-size:9px;color:var(--muted);margin-top:2px}
+.drop{
+ height:145px;border:1.5px dashed rgba(255,255,255,.15);border-radius:14px;display:grid;place-items:center;
+ text-align:center;background:rgba(255,255,255,.018);transition:.18s
 }
-
-.card-icon{
-    width:38px;
-    height:38px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    border-radius:11px;
-
-    background:
-        rgba(102,117,255,.12);
-}
-
-.card-title{
-    font-size:16px;
-    font-weight:700;
-}
-
-.card-subtitle{
-    color:var(--muted);
-    font-size:11px;
-    margin-top:3px;
-}
-
-.drop-zone{
-    min-height:220px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    text-align:center;
-
-    border:
-        1.5px dashed
-        rgba(255,255,255,.15);
-
-    border-radius:17px;
-
-    cursor:pointer;
-
-    background:
-        rgba(255,255,255,.018);
-
-    transition:.2s;
-}
-
-.drop-zone:hover,
-.drop-zone.drag{
-    border-color:var(--primary);
-
-    background:
-        rgba(102,117,255,.07);
-}
-
-.upload-icon{
-    font-size:40px;
-    margin-bottom:10px;
-}
-
-.drop-title{
-    font-weight:700;
-    font-size:14px;
-}
-
-.drop-text{
-    color:var(--muted);
-    font-size:11px;
-    line-height:1.7;
-    margin-top:5px;
-}
-
-input[type=file]{
-    display:none;
-}
-
+.drop:hover,.drop.drag{border-color:var(--primary);background:rgba(102,117,255,.07)}
+.drop strong{display:block;font-size:12px;margin-top:6px}.drop span{display:block;color:var(--muted);font-size:9px;line-height:1.6;margin-top:4px}
 textarea{
-    width:100%;
-    min-height:125px;
-
-    resize:vertical;
-
-    background:
-        rgba(0,0,0,.25);
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius:13px;
-
-    padding:13px;
-
-    color:var(--text);
-
-    outline:none;
-
-    font-family:
-        Consolas,
-        monospace;
-
-    font-size:12px;
-
-    line-height:1.6;
+ width:100%;resize:none;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;
+ padding:10px 11px;color:var(--text);outline:none;font-family:Consolas,monospace;font-size:10px;line-height:1.55
 }
-
-textarea:focus{
-    border-color:
-        rgba(102,117,255,.7);
+textarea:focus{border-color:rgba(102,117,255,.65)}
+.ta-sm{height:82px}.ta-md{height:105px}
+.row{display:flex;gap:7px;flex-wrap:wrap}.mt8{margin-top:8px}.mt10{margin-top:10px}
+.btn{
+ border:1px solid var(--border);background:rgba(255,255,255,.06);color:white;padding:8px 10px;border-radius:9px;
+ font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:.15s
 }
-
-.buttons{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    margin-top:10px;
-}
-
-button{
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.06);
-
-    color:white;
-
-    padding:10px 13px;
-
-    border-radius:10px;
-
-    cursor:pointer;
-
-    font-size:12px;
-    font-weight:600;
-
-    transition:.18s;
-}
-
-button:hover{
-    background:
-        rgba(255,255,255,.12);
-
-    transform:
-        translateY(-1px);
-}
-
-.primary{
-    border:0;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--primary),
-            var(--primary2)
-        );
-}
-
-.green{
-    color:#58e5b0;
-
-    background:
-        rgba(32,216,154,.09);
-}
-
-.red{
-    color:#ff7588;
-
-    background:
-        rgba(255,99,120,.08);
-}
-
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn.primary{border:0;background:linear-gradient(135deg,var(--primary),var(--primary2))}
+.btn.green{color:#58e5b0;background:rgba(32,216,154,.08)}.btn.red{color:#ff7588;background:rgba(255,99,120,.08)}
 .code-box{
-    margin-top:18px;
-
-    padding:20px;
-
-    border:
-        1px solid
-        rgba(102,117,255,.2);
-
-    border-radius:18px;
-
-    text-align:center;
-
-    background:
-        radial-gradient(
-            circle at center,
-            rgba(102,117,255,.10),
-            rgba(0,0,0,.12)
-        );
+ margin-top:10px;padding:12px;border:1px solid rgba(102,117,255,.2);border-radius:14px;text-align:center;
+ background:radial-gradient(circle at center,rgba(102,117,255,.1),rgba(0,0,0,.12))
 }
-
-.code-label{
-    color:var(--muted);
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:1.5px;
+.code-label{color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:1.4px}
+.code{font:800 31px Consolas,monospace;letter-spacing:6px;margin:5px 0 2px;cursor:pointer;user-select:all}.code.empty{color:rgba(255,255,255,.2);letter-spacing:2px}
+.timer{color:var(--muted);font-size:9px}.progress{height:3px;margin-top:8px;border-radius:20px;overflow:hidden;background:rgba(255,255,255,.06)}
+.progress-bar{height:100%;width:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:width 1s linear}
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.info-item{min-width:0;padding:7px 8px;border-radius:9px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.05)}
+.info-label{color:var(--muted);font-size:7px;text-transform:uppercase;margin-bottom:3px}.info-value{font:10px Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status{display:none;margin-top:7px;padding:7px 9px;border-radius:8px;font-size:9px}.status.show{display:block}
+.status.success{color:#55e6ad;background:rgba(32,216,154,.08)}.status.error{color:#ff7b8e;background:rgba(255,99,120,.08)}.status.info{color:#aeb7ff;background:rgba(102,117,255,.08)}
+.qr-area{
+ height:250px;margin-top:10px;border-radius:14px;background:white;display:grid;place-items:center;overflow:hidden
 }
-
-.code{
-    font-family:
-        Consolas,
-        monospace;
-
-    font-size:42px;
-    font-weight:800;
-
-    letter-spacing:8px;
-
-    margin:
-        9px 0 4px;
-
-    cursor:pointer;
-
-    user-select:all;
+.qr-area.empty{background:repeating-linear-gradient(45deg,#151c29,#151c29 10px,#121824 10px,#121824 20px);color:#727d90;font-size:10px}
+#qrcode{display:flex;align-items:center;justify-content:center;padding:10px}
+.section-title{font-size:12px;font-weight:800;margin-bottom:7px}.hint{font-size:9px;color:var(--muted)}
+.table-wrap{height:calc(100% - 48px);overflow:auto;border:1px solid var(--border);border-radius:13px}
+table{width:100%;border-collapse:collapse;font-size:9px}th{position:sticky;top:0;background:#151d2b;color:var(--muted);text-transform:uppercase;font-size:7px;letter-spacing:.5px;text-align:left;z-index:1}
+th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,.055);vertical-align:middle}td.secret{font-family:Consolas,monospace;color:#aeb7ff;max-width:220px;word-break:break-all}
+.otp{font:800 14px Consolas,monospace;color:#58e5b0;white-space:nowrap}
+.empty-state{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.stat{padding:11px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.03)}.stat b{display:block;font-size:20px}.stat span{font-size:8px;color:var(--muted)}
+.footer{display:flex;align-items:center;justify-content:space-between;padding:0 18px;color:var(--muted);font-size:8px;border-top:1px solid var(--border);background:rgba(8,11,18,.7)}
+.footer b{color:#aeb7ff}
+.hidden{display:none!important}
+@media(max-width:900px){
+ .brand-sub,.header-badge{display:none}.brand{min-width:auto}.nav button span{display:none}.nav button{padding:8px}.main{padding:10px}
+ .grid2{grid-template-columns:1fr}.grid2 .card:nth-child(2){display:none}
 }
-
-.code.empty{
-    color:
-        rgba(255,255,255,.2);
-
-    letter-spacing:3px;
-}
-
-.timer{
-    color:var(--muted);
-    font-size:11px;
-}
-
-.progress{
-    height:4px;
-
-    margin-top:12px;
-
-    border-radius:20px;
-
-    overflow:hidden;
-
-    background:
-        rgba(255,255,255,.06);
-}
-
-.progress-bar{
-    height:100%;
-    width:100%;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--primary),
-            var(--primary2)
-        );
-
-    transition:
-        width 1s linear;
-}
-
-.info{
-    margin-top:16px;
-
-    display:grid;
-    grid-template-columns:1fr 1fr;
-
-    gap:8px;
-}
-
-.info-item{
-    padding:10px;
-
-    border-radius:11px;
-
-    background:
-        rgba(255,255,255,.035);
-
-    border:
-        1px solid
-        rgba(255,255,255,.05);
-}
-
-.info-label{
-    color:var(--muted);
-    font-size:9px;
-
-    text-transform:uppercase;
-
-    margin-bottom:4px;
-}
-
-.info-value{
-    font-family:Consolas,monospace;
-
-    font-size:11px;
-
-    white-space:nowrap;
-
-    overflow:hidden;
-
-    text-overflow:ellipsis;
-}
-
-.status{
-    display:none;
-
-    margin-top:11px;
-
-    padding:10px 12px;
-
-    border-radius:10px;
-
-    font-size:11px;
-}
-
-.status.show{
-    display:block;
-}
-
-.status.success{
-    color:#55e6ad;
-    background:rgba(32,216,154,.08);
-}
-
-.status.error{
-    color:#ff7b8e;
-    background:rgba(255,99,120,.08);
-}
-
-.status.info{
-    color:#aeb7ff;
-    background:rgba(102,117,255,.08);
-}
-
-.qr-container{
-    min-height:250px;
-
-    margin-top:15px;
-
-    border-radius:16px;
-
-    background:white;
-
-    display:flex;
-
-    align-items:center;
-    justify-content:center;
-}
-
-.qr-container.empty{
-    background:
-        repeating-linear-gradient(
-            45deg,
-            #151c29,
-            #151c29 10px,
-            #121824 10px,
-            #121824 20px
-        );
-
-    color:#727d90;
-
-    font-size:12px;
-}
-
-#qrcode{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.footer{
-    margin-top:18px;
-
-    padding:14px 17px;
-
-    border-radius:14px;
-
-    border:
-        1px solid
-        var(--border);
-
-    color:var(--muted);
-
-    font-size:11px;
-
-    line-height:1.7;
-}
-
-@media(max-width:800px){
-
-    .main{
-        grid-template-columns:1fr;
-    }
-
-    .code{
-        font-size:34px;
-        letter-spacing:6px;
-    }
-
+@media(max-width:560px){
+ .app{grid-template-rows:54px 1fr 30px}.header{padding:0 10px}.brand-title{font-size:12px}.nav{gap:1px}
+ .nav button{padding:7px}.main{padding:7px}.card{padding:12px}.drop{height:120px}.info{grid-template-columns:repeat(2,1fr)}
+ .footer{font-size:7px;padding:0 8px}.footer span:last-child{display:none}
 }
 </style>
 </head>
 
 <body>
+<div class="app">
 
-<div class="container">
+<header class="header">
+ <div class="brand">
+  <div class="logo"><i data-lucide="shield-check"></i></div>
+  <div><div class="brand-title">2FA Authenticator</div><div class="brand-sub">QR · Secret · OTP · Migration</div></div>
+ </div>
 
-    <div class="header">
+ <nav class="nav" id="nav">
+  <button class="active" data-view="auth"><i data-lucide="key-round" size="14"></i><span>Authenticator</span></button>
+  <button data-view="migration"><i data-lucide="scan-line" size="14"></i><span>Migration QR</span></button>
+ </nav>
 
-        <div class="logo">
-            🔐
-        </div>
+ <div class="header-badge">● Local processing</div>
+</header>
 
-        <h1>
-            2FA Authenticator
-        </h1>
+<main class="main">
 
-        <div class="subtitle">
-            Secret · QR · OTPATH → mã xác thực 6 số
-        </div>
+<!-- AUTHENTICATOR -->
+<section class="view active" id="view-auth">
+ <div class="grid2">
+  <div class="card">
+   <div class="card-head">
+    <div class="card-icon"><i data-lucide="camera"></i></div>
+    <div><div class="card-title">QR / Secret → 2FA Code</div><div class="card-sub">Dán QR, Secret hoặc otpauth:// để lấy mã</div></div>
+   </div>
 
+   <label class="drop" id="dropZone" for="fileInput">
+    <div><i data-lucide="image" size="32"></i>
+     <strong>Dán ảnh QR bằng Ctrl + V</strong>
+     <span>hoặc kéo ảnh vào đây · PNG · JPG · JPEG · WEBP<br>Hỗ trợ QR đơn và QR Migration nhiều tài khoản</span>
     </div>
-
-
-    <div class="main">
-
-
-        <!-- LEFT -->
-
-        <div class="card">
-
-            <div class="card-header">
-
-                <div class="card-icon">
-                    📷
-                </div>
-
-                <div>
-                    <div class="card-title">
-                        QR / Secret → 2FA Code
-                    </div>
-
-                    <div class="card-subtitle">
-                        Dán QR hoặc Secret để lấy mã
-                    </div>
-                </div>
-
-            </div>
-
-
-            <label
-                class="drop-zone"
-                id="dropZone"
-                for="fileInput">
-
-                <div>
-
-                    <div class="upload-icon">
-                        📸
-                    </div>
-
-                    <div class="drop-title">
-                        Dán ảnh QR bằng Ctrl + V
-                    </div>
-
-                    <div class="drop-text">
-                        hoặc kéo ảnh QR vào đây<br>
-                        PNG · JPG · JPEG · WEBP
-                    </div>
-
-                </div>
-
-            </label>
-
-            <input
-                type="file"
-                id="fileInput"
-                accept="image/*"
-            >
-
-
-            <div style="margin-top:15px">
-
-                <textarea
-                    id="input"
-                    placeholder="Dán Secret hoặc otpauth:// vào đây...">
-                </textarea>
-
-            </div>
-
-
-            <div class="buttons">
-
-                <button
-                    class="primary"
-                    onclick="processInput()">
-
-                    🔑 Lấy mã
-
-                </button>
-
-                <button
-                    onclick="pasteSecret()">
-
-                    📋 Paste
-
-                </button>
-
-                <button
-                    class="green"
-                    onclick="copyCode()">
-
-                    Copy mã
-
-                </button>
-
-                <button
-                    class="red"
-                    onclick="resetAll()">
-
-                    🗑 Xóa
-
-                </button>
-
-            </div>
-
-
-            <div
-                id="status"
-                class="status">
-            </div>
-
-
-            <!-- CODE -->
-
-            <div class="code-box">
-
-                <div class="code-label">
-                    Current 2FA Code
-                </div>
-
-                <div
-                    id="code"
-                    class="code empty"
-                    onclick="copyCode()">
-
-                    ------
-
-                </div>
-
-                <div
-                    id="timer"
-                    class="timer">
-
-                    Chưa có Secret
-
-                </div>
-
-                <div class="progress">
-
-                    <div
-                        id="progressBar"
-                        class="progress-bar">
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- INFO -->
-
-            <div class="info">
-
-                <div class="info-item">
-
-                    <div class="info-label">
-                        Secret
-                    </div>
-
-                    <div
-                        id="secretInfo"
-                        class="info-value">
-
-                        -
-
-                    </div>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-label">
-                        Account
-                    </div>
-
-                    <div
-                        id="accountInfo"
-                        class="info-value">
-
-                        -
-
-                    </div>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-label">
-                        Issuer
-                    </div>
-
-                    <div
-                        id="issuerInfo"
-                        class="info-value">
-
-                        -
-
-                    </div>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-label">
-                        Algorithm
-                    </div>
-
-                    <div
-                        id="algorithmInfo"
-                        class="info-value">
-
-                        SHA1
-
-                    </div>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-label">
-                        Digits
-                    </div>
-
-                    <div
-                        id="digitsInfo"
-                        class="info-value">
-
-                        6
-
-                    </div>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-label">
-                        Period
-                    </div>
-
-                    <div
-                        id="periodInfo"
-                        class="info-value">
-
-                        30
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- RIGHT -->
-
-        <div class="card">
-
-            <div class="card-header">
-
-                <div class="card-icon">
-                    🔄
-                </div>
-
-                <div>
-
-                    <div class="card-title">
-                        Secret → QR
-                    </div>
-
-                    <div class="card-subtitle">
-                        Tạo lại QR từ Secret / otpauth
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <textarea
-                id="qrInput"
-                placeholder="Dán Secret hoặc otpauth:// để tạo QR...">
-            </textarea>
-
-
-            <div class="buttons">
-
-                <button
-                    class="primary"
-                    onclick="generateQR()">
-
-                    ✨ Tạo QR
-
-                </button>
-
-                <button
-                    onclick="copyQR()">
-
-                    🖼 Copy ảnh
-
-                </button>
-
-                <button
-                    onclick="downloadQR()">
-
-                    ⬇ Tải PNG
-
-                </button>
-
-            </div>
-
-
-            <div
-                id="qrStatus"
-                class="status">
-            </div>
-
-
-            <div
-                id="qrArea"
-                class="qr-container empty">
-
-                <span id="qrPlaceholder">
-                    QR sẽ xuất hiện ở đây
-                </span>
-
-                <div id="qrcode"></div>
-
-            </div>
-
-        </div>
-
+   </label>
+   <input type="file" id="fileInput" accept="image/*">
+
+   <textarea id="input" class="ta-sm mt10" placeholder="Dán Secret hoặc otpauth:// vào đây..."></textarea>
+   <div class="row mt8">
+    <button class="btn primary" id="processBtn"><i data-lucide="key-round" size="13"></i>Lấy mã</button>
+    <button class="btn" id="pasteBtn"><i data-lucide="clipboard" size="13"></i>Paste</button>
+    <button class="btn green" id="copyCodeBtn"><i data-lucide="copy" size="13"></i>Copy mã</button>
+    <button class="btn red" id="resetBtn"><i data-lucide="trash-2" size="13"></i>Xóa</button>
+   </div>
+   <div id="status" class="status"></div>
+
+   <div class="code-box">
+    <div class="code-label">Current 2FA Code</div>
+    <div id="code" class="code empty">------</div>
+    <div id="timer" class="timer">Chưa có Secret</div>
+    <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+   </div>
+
+   <div class="info">
+    <div class="info-item"><div class="info-label">Secret</div><div id="secretInfo" class="info-value">-</div></div>
+    <div class="info-item"><div class="info-label">Account</div><div id="accountInfo" class="info-value">-</div></div>
+    <div class="info-item"><div class="info-label">Issuer</div><div id="issuerInfo" class="info-value">-</div></div>
+    <div class="info-item"><div class="info-label">Algorithm</div><div id="algorithmInfo" class="info-value">SHA1</div></div>
+    <div class="info-item"><div class="info-label">Digits</div><div id="digitsInfo" class="info-value">6</div></div>
+    <div class="info-item"><div class="info-label">Period</div><div id="periodInfo" class="info-value">30s</div></div>
+   </div>
+  </div>
+
+  <div class="card">
+   <div class="card-head">
+    <div class="card-icon"><i data-lucide="repeat"></i></div>
+    <div><div class="card-title">Secret → QR</div><div class="card-sub">Tạo lại QR từ Secret / otpauth://</div></div>
+   </div>
+   <textarea id="qrInput" class="ta-sm" placeholder="Dán Secret hoặc otpauth:// để tạo QR..."></textarea>
+   <div class="row mt8">
+    <button class="btn primary" id="generateQRBtn"><i data-lucide="sparkles" size="13"></i>Tạo QR</button>
+    <button class="btn" id="copyQRBtn"><i data-lucide="copy" size="13"></i>Copy ảnh</button>
+    <button class="btn" id="downloadQRBtn"><i data-lucide="download" size="13"></i>Tải PNG</button>
+   </div>
+   <div id="qrStatus" class="status"></div>
+   <div id="qrArea" class="qr-area empty"><span id="qrPlaceholder">QR sẽ xuất hiện ở đây</span><div id="qrcode"></div></div>
+   <div class="mt10 hint">Nếu nhập Secret thuần, app tạo <b>otpauth://totp</b> mặc định với SHA1 · 6 digits · 30s.</div>
+  </div>
+ </div>
+</section>
+
+<!-- MIGRATION -->
+<section class="view" id="view-migration">
+ <div class="grid2">
+  <div class="card">
+   <div class="card-head">
+    <div class="card-icon"><i data-lucide="scan-line"></i></div>
+    <div><div class="card-title">Google Authenticator Migration QR</div><div class="card-sub">Đọc QR Export chứa một hoặc nhiều tài khoản</div></div>
+   </div>
+   <label class="drop" id="migrationDrop" for="migrationFile">
+    <div><i data-lucide="scan" size="32"></i>
+     <strong>Dán / chọn ảnh QR Migration</strong>
+     <span>Ctrl + V ở bất kỳ đâu hoặc chọn file ảnh<br>QR đơn otpauth:// cũng được hỗ trợ</span>
     </div>
+   </label>
+   <input type="file" id="migrationFile" accept="image/*">
+   <div id="migrationStatus" class="status"></div>
+   <div class="mt10">
+    <div class="section-title">QR text (tuỳ chọn)</div>
+    <textarea id="migrationText" class="ta-md" placeholder="Nếu đã có chuỗi QR dạng otpauth-migration:// hoặc otpauth://, dán vào đây..."></textarea>
+   </div>
+   <div class="row mt8">
+    <button class="btn primary" id="decodeTextBtn"><i data-lucide="binary" size="13"></i>Giải mã chuỗi</button>
+    <button class="btn green" id="copyAllBtn"><i data-lucide="copy" size="13"></i>Copy tất cả Secret</button>
+    <button class="btn red" id="clearAccountsBtn"><i data-lucide="trash-2" size="13"></i>Xóa danh sách</button>
+   </div>
+  </div>
 
+  <div class="card">
+   <div class="card-head">
+    <div class="card-icon"><i data-lucide="table-2"></i></div>
+    <div><div class="card-title">Kết quả Migration</div><div class="card-sub">Tài khoản được giải mã từ QR</div></div>
+   </div>
+   <div class="stats">
+    <div class="stat"><b id="accountCount">0</b><span>Tài khoản</span></div>
+    <div class="stat"><b id="shaCount">0</b><span>SHA</span></div>
+    <div class="stat"><b id="digitCount">0</b><span>Digits</span></div>
+   </div>
+   <div class="table-wrap">
+    <table>
+     <thead><tr><th>Account</th><th>Issuer</th><th>Secret</th><th>Algo</th><th>OTP</th><th></th></tr></thead>
+     <tbody id="accountsBody"></tbody>
+    </table>
+    <div id="accountsEmpty" class="empty-state">Chưa có dữ liệu.<br>Dán hoặc tải QR Migration để bắt đầu.</div>
+   </div>
+  </div>
+ </div>
+</section>
 
-    <div class="footer">
+<!-- QR -->
+<section class="view" id="view-qr">
+ <div class="grid2">
+  <div class="card">
+   <div class="card-head">
+    <div class="card-icon"><i data-lucide="qr-code"></i></div>
+    <div><div class="card-title">QR Generator</div><div class="card-sub">Secret / otpauth:// → QR có thể quét lại</div></div>
+   </div>
+   <div class="section-title">Nội dung QR</div>
+   <textarea id="qrPageInput" class="ta-md" placeholder="Dán Secret hoặc otpauth:// vào đây..."></textarea>
+   <div class="row mt8">
+    <button class="btn primary" id="qrPageGenerate"><i data-lucide="qr-code" size="13"></i>Tạo QR</button>
+    <button class="btn" id="qrPageCopy"><i data-lucide="copy" size="13"></i>Copy ảnh</button>
+    <button class="btn" id="qrPageDownload"><i data-lucide="download" size="13"></i>Tải PNG</button>
+   </div>
+   <div id="qrPageStatus" class="status"></div>
+   <div class="mt10 hint">Để giữ nguyên cấu hình Algorithm / Digits / Period / Issuer, hãy nhập <b>otpauth://</b> thay vì chỉ Secret.</div>
+  </div>
+  <div class="card">
+   <div class="card-head">
+    <div class="card-icon"><i data-lucide="image"></i></div>
+    <div><div class="card-title">Preview</div><div class="card-sub">QR được tạo hoàn toàn trong trình duyệt</div></div>
+   </div>
+   <div id="qrPageArea" class="qr-area empty"><span id="qrPagePlaceholder">QR sẽ xuất hiện ở đây</span><div id="qrPageCanvas"></div></div>
+  </div>
+ </div>
+</section>
 
-        🔒 <b>Privacy:</b>
-        Secret và mã 2FA được xử lý trực tiếp trong trình duyệt.
-        Không gửi Secret lên server.
+<!-- ACCOUNTS -->
+<section class="view" id="view-accounts">
+ <div class="card">
+  <div class="card-head">
+   <div class="card-icon"><i data-lucide="list"></i></div>
+   <div><div class="card-title">Account Manager</div><div class="card-sub">Danh sách tài khoản đã đọc từ Migration QR</div></div>
+  </div>
+  <div class="row mb8">
+   <button class="btn green" id="accountsCopy"><i data-lucide="copy" size="13"></i>Copy tất cả Secret</button>
+   <button class="btn red" id="accountsClear"><i data-lucide="trash-2" size="13"></i>Xóa tất cả</button>
+  </div>
+  <div class="table-wrap" style="height:calc(100% - 92px)">
+   <table>
+    <thead><tr><th>#</th><th>Account</th><th>Issuer</th><th>Secret</th><th>Algorithm</th><th>Digits</th><th>Period</th><th>OTP</th><th></th></tr></thead>
+    <tbody id="managerBody"></tbody>
+   </table>
+   <div id="managerEmpty" class="empty-state">Chưa có tài khoản.</div>
+  </div>
+ </div>
+</section>
 
-        <br>
+</main>
 
-        ⚠️ Để mã giống Google Authenticator,
-        Secret, Algorithm, Digits, Period và thời gian hệ thống
-        phải giống nhau.
-
-    </div>
-
+<footer class="footer">
+ <span>🔒 <b>Privacy:</b> Secret, QR và OTP xử lý trực tiếp trên trình duyệt.</span>
+ <span>2FA Authenticator · v2 Combined</span>
+</footer>
 </div>
 
-
-<canvas
-    id="canvas"
-    style="display:none">
-</canvas>
-
+<canvas id="canvas" class="hidden"></canvas>
 
 <script>
+/* =========================================================
+   STATE
+========================================================= */
+let current = {secret:"",algorithm:"SHA1",digits:6,period:30,issuer:"",account:""};
+let accounts = [];
+let otpTimer = null;
+let qrCanvases = {main:null,page:null};
 
 /* =========================================================
-   VARIABLES
+   HELPERS
 ========================================================= */
+const $ = id => document.getElementById(id);
+const normalizeBase32 = v => String(v||"").toUpperCase().replace(/\s+/g,"").replace(/-/g,"").replace(/=/g,"");
 
-let secret = "";
-let algorithm = "SHA1";
-let digits = 6;
-let period = 30;
+function status(el,text,type){el.textContent=text;el.className="status show "+type}
+function clearStatus(el){el.className="status"}
 
-let issuer = "";
-let account = "";
-
-let otpInterval = null;
-
-let qrCanvas = null;
-
-
-/* =========================================================
-   ELEMENTS
-========================================================= */
-
-const input =
-    document.getElementById("input");
-
-const codeEl =
-    document.getElementById("code");
-
-const timerEl =
-    document.getElementById("timer");
-
-const progressBar =
-    document.getElementById("progressBar");
-
-const dropZone =
-    document.getElementById("dropZone");
-
-const fileInput =
-    document.getElementById("fileInput");
-
-
-/* =========================================================
-   NORMALIZE BASE32
-========================================================= */
-
-function normalizeBase32(value){
-
-    return value
-        .toUpperCase()
-        .replace(/\s+/g,"")
-        .replace(/-/g,"")
-        .replace(/=/g,"");
-
+function bytesToBase32(buffer){
+ const alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; let bits=0,value=0,out="";
+ for(const b of buffer){value=(value<<8)|b;bits+=8;while(bits>=5){out+=alphabet[(value>>>(bits-5))&31];bits-=5}}
+ if(bits>0) out+=alphabet[(value<<(5-bits))&31]; return out;
 }
 
-
 /* =========================================================
-   BASE32 DECODER
+   OTP AUTH — otpauth library is used for parsing/generation
 ========================================================= */
-
-function base32ToBytes(base32){
-
-    const alphabet =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
-    base32 =
-        normalizeBase32(base32);
-
-    let bits = "";
-    let bytes = [];
-
-    for(const char of base32){
-
-        const index =
-            alphabet.indexOf(char);
-
-        if(index === -1){
-
-            throw new Error(
-                "Secret không phải Base32 hợp lệ."
-            );
-
-        }
-
-        bits +=
-            index
-                .toString(2)
-                .padStart(5,"0");
-
-    }
-
-    for(
-        let i = 0;
-        i + 8 <= bits.length;
-        i += 8
-    ){
-
-        bytes.push(
-            parseInt(
-                bits.substring(i,i+8),
-                2
-            )
-        );
-
-    }
-
-    return new Uint8Array(bytes);
-
-}
-
-
-/* =========================================================
-   PARSE OTPAUTH
-========================================================= */
-
 function parseOTPAuth(value){
-
-    value =
-        value.trim();
-
-    /*
-     * Nếu là URL otpauth
-     */
-
-    if(
-        value.toLowerCase()
-        .startsWith("otpauth://")
-    ){
-
-        const url =
-            new URL(value);
-
-        const params =
-            url.searchParams;
-
-        const parsedSecret =
-            params.get("secret");
-
-        if(!parsedSecret){
-
-            throw new Error(
-                "OTPAUTH không có Secret."
-            );
-
-        }
-
-        secret =
-            normalizeBase32(parsedSecret);
-
-        algorithm =
-            (
-                params.get("algorithm")
-                || "SHA1"
-            ).toUpperCase();
-
-        digits =
-            parseInt(
-                params.get("digits")
-                || "6",
-                10
-            );
-
-        period =
-            parseInt(
-                params.get("period")
-                || "30",
-                10
-            );
-
-        issuer =
-            params.get("issuer")
-            || "";
-
-        /*
-         * Account nằm trong pathname
-         */
-
-        let label =
-            decodeURIComponent(
-                url.pathname.substring(1)
-            );
-
-        if(label){
-
-            /*
-             * issuer:account
-             */
-
-            if(label.includes(":")){
-
-                const parts =
-                    label.split(":");
-
-                if(!issuer){
-
-                    issuer =
-                        parts.shift();
-                }
-
-                account =
-                    parts.join(":");
-
-            }else{
-
-                account =
-                    label;
-
-            }
-
-        }
-
-        return;
-
-    }
-
-
-    /*
-     * Nếu chỉ là Secret
-     */
-
-    secret =
-        normalizeBase32(value);
-
-    algorithm =
-        "SHA1";
-
-    digits =
-        6;
-
-    period =
-        30;
-
-    issuer =
-        "";
-
-    account =
-        "";
-
+ value=value.trim();
+ if(!value) throw new Error("Chưa có dữ liệu.");
+ if(value.toLowerCase().startsWith("otpauth://")){
+   const totp=OTPAuth.URI.parse(value);
+   current={
+     secret:normalizeBase32(totp.secret.base32 || bytesToBase32(totp.secret.bytes)),
+     algorithm:(totp.algorithm||"SHA1").toUpperCase(),
+     digits:Number(totp.digits||6),
+     period:Number(totp.period||30),
+     issuer:totp.issuer||"",
+     account:totp.name||""
+   };
+ }else{
+   current={secret:normalizeBase32(value),algorithm:"SHA1",digits:6,period:30,issuer:"",account:""};
+ }
+ if(!current.secret) throw new Error("Không tìm thấy Secret.");
+ if(!/^[A-Z2-7]+$/.test(current.secret)) throw new Error("Secret không phải Base32 hợp lệ.");
+ return current;
 }
 
+function makeOtpAuth(acc){
+ const label=encodeURIComponent((acc.issuer?acc.issuer+":":"")+acc.account);
+ return `otpauth://totp/${label}?secret=${encodeURIComponent(acc.secret)}&issuer=${encodeURIComponent(acc.issuer||"2FA")}&algorithm=${encodeURIComponent(acc.algorithm||"SHA1")}&digits=${encodeURIComponent(acc.digits||6)}&period=${encodeURIComponent(acc.period||30)}`;
+}
 
 /* =========================================================
-   HMAC
+   TOTP — Web Crypto only for the small necessary core
 ========================================================= */
-
-async function hmacSHA1(
-    key,
-    data
-){
-
-    const cryptoKey =
-        await crypto.subtle.importKey(
-            "raw",
-            key,
-            {
-                name:"HMAC",
-                hash:"SHA-1"
-            },
-            false,
-            ["sign"]
-        );
-
-    const signature =
-        await crypto.subtle.sign(
-            "HMAC",
-            cryptoKey,
-            data
-        );
-
-    return new Uint8Array(signature);
-
+async function generateTOTP(acc=current){
+ const secret=normalizeBase32(acc.secret);
+ const alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; let bits="",bytes=[];
+ for(const c of secret){const n=alphabet.indexOf(c);if(n<0)throw new Error("Secret Base32 không hợp lệ.");bits+=n.toString(2).padStart(5,"0")}
+ for(let i=0;i+8<=bits.length;i+=8)bytes.push(parseInt(bits.slice(i,i+8),2));
+ const counter=Math.floor(Date.now()/1000/(Number(acc.period)||30));
+ const data=new Uint8Array(8); let n=counter;
+ for(let i=7;i>=0;i--){data[i]=n&255;n=Math.floor(n/256)}
+ const hashName=(acc.algorithm||"SHA1").toUpperCase()==="SHA512"?"SHA-512":(acc.algorithm||"SHA1").toUpperCase()==="SHA256"?"SHA-256":"SHA-1";
+ const key=await crypto.subtle.importKey("raw",new Uint8Array(bytes),{name:"HMAC",hash:hashName},false,["sign"]);
+ const hash=new Uint8Array(await crypto.subtle.sign("HMAC",key,data));
+ const offset=hash[hash.length-1]&15;
+ const binary=(((hash[offset]&127)<<24)|((hash[offset+1]&255)<<16)|((hash[offset+2]&255)<<8)|(hash[offset+3]&255))>>>0;
+ return String(binary%Math.pow(10,Number(acc.digits)||6)).padStart(Number(acc.digits)||6,"0");
 }
-
-
-async function hmacSHA256(
-    key,
-    data
-){
-
-    const cryptoKey =
-        await crypto.subtle.importKey(
-            "raw",
-            key,
-            {
-                name:"HMAC",
-                hash:"SHA-256"
-            },
-            false,
-            ["sign"]
-        );
-
-    const signature =
-        await crypto.subtle.sign(
-            "HMAC",
-            cryptoKey,
-            data
-        );
-
-    return new Uint8Array(signature);
-
-}
-
-
-async function hmacSHA512(
-    key,
-    data
-){
-
-    const cryptoKey =
-        await crypto.subtle.importKey(
-            "raw",
-            key,
-            {
-                name:"HMAC",
-                hash:"SHA-512"
-            },
-            false,
-            ["sign"]
-        );
-
-    const signature =
-        await crypto.subtle.sign(
-            "HMAC",
-            cryptoKey,
-            data
-        );
-
-    return new Uint8Array(signature);
-
-}
-
 
 /* =========================================================
-   TOTP
+   AUTHENTICATOR VIEW
 ========================================================= */
-
-async function generateTOTP(){
-
-    if(!secret){
-
-        return null;
-
-    }
-
-    const key =
-        base32ToBytes(secret);
-
-    /*
-     * Unix timestamp
-     */
-
-    const counter =
-        Math.floor(
-            Date.now() / 1000 / period
-        );
-
-    /*
-     * 8 byte big endian counter
-     */
-
-    const counterBytes =
-        new Uint8Array(8);
-
-    let temp =
-        counter;
-
-    for(
-        let i = 7;
-        i >= 0;
-        i--
-    ){
-
-        counterBytes[i] =
-            temp & 0xff;
-
-        temp =
-            Math.floor(
-                temp / 256
-            );
-
-    }
-
-
-    let hash;
-
-    if(algorithm === "SHA256"){
-
-        hash =
-            await hmacSHA256(
-                key,
-                counterBytes
-            );
-
-    }else if(
-        algorithm === "SHA512"
-    ){
-
-        hash =
-            await hmacSHA512(
-                key,
-                counterBytes
-            );
-
-    }else{
-
-        hash =
-            await hmacSHA1(
-                key,
-                counterBytes
-            );
-
-    }
-
-
-    /*
-     * Dynamic truncation
-     */
-
-    const offset =
-        hash[hash.length - 1] & 0x0f;
-
-    const binary =
-        (
-            ((hash[offset] & 0x7f) << 24) |
-            ((hash[offset + 1] & 0xff) << 16) |
-            ((hash[offset + 2] & 0xff) << 8) |
-            (hash[offset + 3] & 0xff)
-        ) >>> 0;
-
-
-    const mod =
-        Math.pow(10,digits);
-
-    return String(
-        binary % mod
-    ).padStart(
-        digits,
-        "0"
-    );
-
-}
-
-
-/* =========================================================
-   UPDATE OTP
-========================================================= */
-
-async function updateOTP(){
-
-    if(!secret){
-
-        codeEl.textContent =
-            "------";
-
-        codeEl.classList.add("empty");
-
-        timerEl.textContent =
-            "Chưa có Secret";
-
-        progressBar.style.width =
-            "100%";
-
-        return;
-
-    }
-
-    try{
-
-        const code =
-            await generateTOTP();
-
-        codeEl.textContent =
-            code;
-
-        codeEl.classList.remove("empty");
-
-        updateTimer();
-
-    }catch(error){
-
-        console.error(error);
-
-        showStatus(
-            "Secret không hợp lệ: " +
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   TIMER
-========================================================= */
-
-function updateTimer(){
-
-    const now =
-        Math.floor(
-            Date.now() / 1000
-        );
-
-    const remaining =
-        period -
-        (now % period);
-
-    const elapsed =
-        period -
-        remaining;
-
-    const percentage =
-        (
-            remaining / period
-        ) * 100;
-
-    timerEl.textContent =
-        "Mã mới sau " +
-        remaining +
-        " giây";
-
-    progressBar.style.width =
-        percentage + "%";
-
-}
-
-
-/* =========================================================
-   START TIMER
-========================================================= */
-
-function startTimer(){
-
-    if(otpInterval){
-
-        clearInterval(
-            otpInterval
-        );
-
-    }
-
-    updateOTP();
-
-    otpInterval =
-        setInterval(
-            updateOTP,
-            1000
-        );
-
-}
-
-
-/* =========================================================
-   PROCESS INPUT
-========================================================= */
-
-async function processInput(){
-
-    const value =
-        input.value.trim();
-
-    if(!value){
-
-        showStatus(
-            "Hãy dán Secret hoặc otpauth:// trước.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    try{
-
-        parseOTPAuth(value);
-
-        updateInfo();
-
-        startTimer();
-
-        /*
-         * Đồng bộ input QR
-         */
-
-        document.getElementById(
-            "qrInput"
-        ).value = value;
-
-        showStatus(
-            "✓ Đã nhận Secret. Mã 2FA đang được tạo.",
-            "success"
-        );
-
-    }catch(error){
-
-        showStatus(
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   PASTE SECRET
-========================================================= */
-
-async function pasteSecret(){
-
-    try{
-
-        const text =
-            await navigator.clipboard.readText();
-
-        input.value =
-            text;
-
-        processInput();
-
-    }catch{
-
-        showStatus(
-            "Không thể đọc clipboard. Hãy Ctrl + V vào ô.",
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   UPDATE INFO
-========================================================= */
-
 function updateInfo(){
-
-    document.getElementById(
-        "secretInfo"
-    ).textContent =
-        secret || "-";
-
-    document.getElementById(
-        "accountInfo"
-    ).textContent =
-        account || "-";
-
-    document.getElementById(
-        "issuerInfo"
-    ).textContent =
-        issuer || "-";
-
-    document.getElementById(
-        "algorithmInfo"
-    ).textContent =
-        algorithm;
-
-    document.getElementById(
-        "digitsInfo"
-    ).textContent =
-        digits;
-
-    document.getElementById(
-        "periodInfo"
-    ).textContent =
-        period + "s";
-
+ $("secretInfo").textContent=current.secret||"-";
+ $("accountInfo").textContent=current.account||"-";
+ $("issuerInfo").textContent=current.issuer||"-";
+ $("algorithmInfo").textContent=current.algorithm;
+ $("digitsInfo").textContent=current.digits;
+ $("periodInfo").textContent=current.period+"s";
+}
+async function updateMainOTP(){
+ if(!current.secret){$("code").textContent="------";$("code").classList.add("empty");$("timer").textContent="Chưa có Secret";$("progressBar").style.width="100%";return}
+ try{
+  $("code").textContent=await generateTOTP(current);$("code").classList.remove("empty");updateTimer();
+ }catch(e){status($("status"),e.message,"error")}
+}
+function updateTimer(){
+ if(!current.secret)return;
+ const p=Number(current.period)||30, now=Math.floor(Date.now()/1000), remaining=p-(now%p);
+ $("timer").textContent="Mã mới sau "+remaining+" giây";
+ $("progressBar").style.width=((remaining/p)*100)+"%";
+}
+function startOTP(){
+ clearInterval(otpTimer);updateMainOTP();otpTimer=setInterval(updateMainOTP,1000);
+}
+async function processMain(){
+ try{
+  parseOTPAuth($("input").value);updateInfo();startOTP();
+  $("qrInput").value=$("input").value;
+  status($("status"),"✓ Đã nhận Secret. Mã 2FA đang được tạo.","success");
+ }catch(e){status($("status"),e.message,"error")}
+}
+async function pasteText(){
+ try{$("input").value=await navigator.clipboard.readText();processMain()}
+ catch(e){status($("status"),"Clipboard không cho phép đọc. Hãy Ctrl + V vào ô.","error")}
+}
+async function copyText(text,targetStatus){
+ try{await navigator.clipboard.writeText(text);status(targetStatus,"✓ Đã copy.","success")}
+ catch{const t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();status(targetStatus,"✓ Đã copy.","success")}
+}
+function resetMain(){
+ current={secret:"",algorithm:"SHA1",digits:6,period:30,issuer:"",account:""};clearInterval(otpTimer);otpTimer=null;
+ $("input").value="";$("code").textContent="------";$("code").classList.add("empty");$("timer").textContent="Chưa có Secret";$("progressBar").style.width="100%";updateInfo();clearStatus($("status"));
 }
 
-
 /* =========================================================
-   COPY CODE
+   QR IMAGE READER
 ========================================================= */
-
-async function copyCode(){
-
-    const code =
-        codeEl.textContent.trim();
-
-    if(
-        !code ||
-        code === "------"
-    ){
-
-        showStatus(
-            "Chưa có mã để copy.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    try{
-
-        await navigator.clipboard.writeText(
-            code
-        );
-
-        showStatus(
-            "✓ Đã copy mã " + code,
-            "success"
-        );
-
-    }catch{
-
-        const temp =
-            document.createElement("textarea");
-
-        temp.value =
-            code;
-
-        document.body.appendChild(temp);
-
-        temp.select();
-
-        document.execCommand("copy");
-
-        temp.remove();
-
-        showStatus(
-            "✓ Đã copy mã.",
-            "success"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   QR IMAGE READING
-========================================================= */
-
 function readQR(file){
-
-    showStatus(
-        "Đang đọc QR...",
-        "info"
-    );
-
-    const reader =
-        new FileReader();
-
-    reader.onload =
-        function(){
-
-            const img =
-                new Image();
-
-            img.onload =
-                function(){
-
-                    const canvas =
-                        document.getElementById(
-                            "canvas"
-                        );
-
-                    let width =
-                        img.naturalWidth;
-
-                    let height =
-                        img.naturalHeight;
-
-                    const max =
-                        3000;
-
-                    if(
-                        Math.max(
-                            width,
-                            height
-                        ) > max
-                    ){
-
-                        const scale =
-                            max /
-                            Math.max(
-                                width,
-                                height
-                            );
-
-                        width =
-                            Math.round(
-                                width * scale
-                            );
-
-                        height =
-                            Math.round(
-                                height * scale
-                            );
-
-                    }
-
-                    canvas.width =
-                        width;
-
-                    canvas.height =
-                        height;
-
-                    const ctx =
-                        canvas.getContext(
-                            "2d",
-                            {
-                                willReadFrequently:true
-                            }
-                        );
-
-                    ctx.drawImage(
-                        img,
-                        0,
-                        0,
-                        width,
-                        height
-                    );
-
-                    const data =
-                        ctx.getImageData(
-                            0,
-                            0,
-                            width,
-                            height
-                        );
-
-                    const qr =
-                        jsQR(
-                            data.data,
-                            width,
-                            height,
-                            {
-                                inversionAttempts:
-                                    "attemptBoth"
-                            }
-                        );
-
-                    if(
-                        qr &&
-                        qr.data
-                    ){
-
-                        input.value =
-                            qr.data;
-
-                        /*
-                         * Tự động xử lý
-                         */
-
-                        processInput();
-
-                        /*
-                         * Đưa sang ô tạo QR
-                         */
-
-                        document.getElementById(
-                            "qrInput"
-                        ).value =
-                            qr.data;
-
-                        showStatus(
-                            "✓ Đã đọc QR thành công.",
-                            "success"
-                        );
-
-                    }else{
-
-                        showStatus(
-                            "Không tìm thấy QR trong ảnh.",
-                            "error"
-                        );
-
-                    }
-
-                };
-
-            img.src =
-                reader.result;
-
-        };
-
-    reader.readAsDataURL(file);
-
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=e=>{
+  const img=new Image();
+  img.onload=()=>{
+   const canvas=$("canvas"), max=3200;let w=img.naturalWidth,h=img.naturalHeight;
+   if(Math.max(w,h)>max){const s=max/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s)}
+   canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
+   const d=ctx.getImageData(0,0,w,h),qr=jsQR(d.data,w,h,{inversionAttempts:"attemptBoth"});
+   if(!qr){status($("status"),"Không tìm thấy QR trong ảnh.","error");status($("migrationStatus"),"Không tìm thấy QR trong ảnh.","error");return}
+   handleQRText(qr.data);
+  };img.src=e.target.result;
+ };reader.readAsDataURL(file);
+}
+function handleQRText(text){
+ $("migrationText").value=text;
+ if(text.startsWith("otpauth-migration://")) decodeMigration(text);
+ else if(text.startsWith("otpauth://")) {
+  try{const acc=parseOTPAuth(text);current=acc;$("input").value=text;updateInfo();startOTP();status($("status"),"✓ Đã đọc QR otpauth.","success");switchView("auth")}
+  catch(e){status($("status"),e.message,"error")}
+ } else {
+  status($("status"),"QR không phải otpauth/Google Migration.","error");
+ }
 }
 
+/* =========================================================
+   GOOGLE AUTH MIGRATION PROTOBUF — necessary custom decoder
+========================================================= */
+function parseMigrationQR(uri){
+ if(!uri.startsWith("otpauth-migration://offline?data="))throw new Error("Không phải Google Authenticator Migration QR.");
+ const encoded=uri.split("data=")[1];
+ const bytes=Uint8Array.from(atob(decodeURIComponent(encoded)),c=>c.charCodeAt(0));
+ return parseMigrationBytes(bytes);
+}
+function parseMigrationBytes(bytes){
+ let offset=0, out=[];
+ const varint=()=>{let r=0,shift=0;while(offset<bytes.length){const b=bytes[offset++];r|=(b&127)<<shift;if(!(b&128))break;shift+=7}return r>>>0};
+ while(offset<bytes.length){
+  const tag=varint(), wire=tag&7, field=tag>>>3;
+  if(field===1){const len=varint(),sub=bytes.subarray(offset,offset+len);offset+=len;const a=parseOtpParameters(sub);if(a)out.push(a)}
+  else if(wire===0)varint();
+  else if(wire===2){const len=varint();offset+=len}
+  else break;
+ }
+ return out;
+}
+function parseOtpParameters(bytes){
+ let offset=0,secretBytes=null,name="",issuer="",algorithm=1,digits=1;
+ const varint=()=>{let r=0,shift=0;while(offset<bytes.length){const b=bytes[offset++];r|=(b&127)<<shift;if(!(b&128))break;shift+=7}return r>>>0};
+ const text=()=>{const len=varint(),s=new TextDecoder().decode(bytes.subarray(offset,offset+len));offset+=len;return s};
+ while(offset<bytes.length){
+  const tag=varint(),wire=tag&7,field=tag>>>3;
+  if(field===1){const len=varint();secretBytes=bytes.subarray(offset,offset+len);offset+=len}
+  else if(field===2)name=text();
+  else if(field===3)issuer=text();
+  else if(field===4)algorithm=varint();
+  else if(field===5)digits=varint();
+  else if(wire===0)varint();
+  else if(wire===2){const len=varint();offset+=len}
+  else break;
+ }
+ if(!secretBytes)return null;
+ const algorithmMap={1:"SHA1",2:"SHA256",3:"SHA512",4:"MD5"};
+ return {name,account:name,issuer,secret:bytesToBase32(secretBytes),algorithm:algorithmMap[algorithm]||"SHA1",digits:digits===2?8:6,period:30};
+}
+function decodeMigration(uri){
+ try{
+  const result=parseMigrationQR(uri);
+  if(!result.length)throw new Error("Không tìm thấy tài khoản trong QR.");
+  accounts=[...accounts,...result];
+  renderAccounts();status($("migrationStatus"),`✓ Đã giải mã ${result.length} tài khoản.`,"success");
+ }catch(e){status($("migrationStatus"),"Lỗi giải mã: "+e.message,"error")}
+}
 
 /* =========================================================
-   FILE INPUT
+   ACCOUNT TABLES
 ========================================================= */
-
-fileInput.addEventListener(
-    "change",
-    function(e){
-
-        const file =
-            e.target.files[0];
-
-        if(file){
-
-            readQR(file);
-
-        }
-
-    }
-);
-
+function accountRow(acc,index,manager=false){
+ const tr=document.createElement("tr");
+ tr.innerHTML=`
+ <td>${manager?index+1:""}</td>
+ <td title="${escapeHtml(acc.account||acc.name||"-")}">${escapeHtml(acc.account||acc.name||"-")}</td>
+ <td>${escapeHtml(acc.issuer||"-")}</td>
+ <td class="secret">${escapeHtml(acc.secret)}</td>
+ ${manager?`<td>${escapeHtml(acc.algorithm)}</td><td>${acc.digits}</td><td>${acc.period}s</td>`:`<td>${escapeHtml(acc.algorithm)}</td>`}
+ <td class="otp" id="${manager?"m":"a"}otp-${index}">------</td>
+ <td><button class="btn" data-copy="${index}" style="padding:5px 7px">Copy</button></td>`;
+ tr.querySelector("[data-copy]").onclick=()=>copyText(acc.secret,$("migrationStatus"));
+ return tr;
+}
+function renderAccounts(){
+ const b=$("accountsBody"),m=$("managerBody");b.innerHTML="";m.innerHTML="";
+ $("accountsEmpty").classList.toggle("hidden",accounts.length>0);$("managerEmpty").classList.toggle("hidden",accounts.length>0);
+ const sha=new Set(accounts.map(a=>a.algorithm)).size, digs=new Set(accounts.map(a=>a.digits)).size;
+ $("accountCount").textContent=accounts.length;$("shaCount").textContent=sha;$("digitCount").textContent=digs;
+ accounts.forEach((a,i)=>{b.appendChild(accountRow(a,i,false));m.appendChild(accountRow(a,i,true))});
+ updateAccountOTPs();
+}
+async function updateAccountOTPs(){
+ await Promise.all(accounts.map(async(a,i)=>{
+  try{
+   const code=await generateTOTP(a);
+   const x=$("aotp-"+i),y=$("motp-"+i);if(x)x.textContent=code;if(y)y.textContent=code;
+  }catch{}
+ }));
+}
+async function copyAll(){
+ if(!accounts.length){status($("migrationStatus"),"Chưa có tài khoản.","error");return}
+ await copyText(accounts.map(a=>`${a.issuer||"Account"}: ${a.account||a.name} - ${a.secret}`).join("\n"),$("migrationStatus"));
+}
+function clearAccounts(){accounts=[];renderAccounts();clearStatus($("migrationStatus"))}
 
 /* =========================================================
-   DRAG DROP
+   QR GENERATOR
 ========================================================= */
+function normalizeQRText(value){
+ value=value.trim();if(!value)throw new Error("Hãy nhập Secret hoặc otpauth://.");
+ if(value.toLowerCase().startsWith("otpauth://")){OTPAuth.URI.parse(value);return value}
+ const s=normalizeBase32(value);if(!/^[A-Z2-7]+$/.test(s))throw new Error("Secret không phải Base32 hợp lệ.");
+ return `otpauth://totp/2FA?secret=${encodeURIComponent(s)}&issuer=2FA`;
+}
+function generateQRTo(value,container,area,placeholder,setter,statusEl){
+ try{
+  const text=normalizeQRText(value);container.innerHTML="";placeholder.style.display="none";area.classList.remove("empty");
+  new QRCode(container,{text,width:230,height:230,colorDark:"#000000",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+  setTimeout(()=>setter(container.querySelector("canvas")),80);status(statusEl,"✓ QR đã được tạo.","success");
+ }catch(e){status(statusEl,e.message,"error")}
+}
+function getCanvas(which){return qrCanvases[which]||document.querySelector(which==="main"?"#qrcode canvas":"#qrPageCanvas canvas")}
+async function copyQR(which,statusEl){
+ const c=getCanvas(which);if(!c){status(statusEl,"Chưa có QR.","error");return}
+ c.toBlob(async blob=>{try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);status(statusEl,"✓ Đã copy ảnh QR.","success")}catch{status(statusEl,"Trình duyệt không cho copy ảnh trực tiếp.","error")}},"image/png");
+}
+function downloadQR(which,statusEl){
+ const c=getCanvas(which);if(!c){status(statusEl,"Chưa có QR.","error");return}
+ const a=document.createElement("a");a.download="2FA-QR.png";a.href=c.toDataURL("image/png");a.click();status(statusEl,"✓ Đã tạo file PNG.","success");
+}
 
-["dragenter","dragover"]
-.forEach(event => {
+/* =========================================================
+   NAV
+========================================================= */
+function switchView(name){
+ document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));
+ document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
+}
+$("nav").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
 
-    dropZone.addEventListener(
-        event,
-        function(e){
+/* =========================================================
+   EVENTS
+========================================================= */
+$("processBtn").onclick=processMain;
+$("pasteBtn").onclick=pasteText;
+$("copyCodeBtn").onclick=()=>copyText($("code").textContent.trim(),$("status"));
+$("resetBtn").onclick=resetMain;
 
-            e.preventDefault();
+$("fileInput").onchange=e=>readQR(e.target.files[0]);
+$("migrationFile").onchange=e=>readQR(e.target.files[0]);
+["dragenter","dragover"].forEach(ev=>$("dropZone").addEventListener(ev,e=>{e.preventDefault();$("dropZone").classList.add("drag")}));
+["dragleave","drop"].forEach(ev=>$("dropZone").addEventListener(ev,e=>{e.preventDefault();$("dropZone").classList.remove("drag")}));
+$("dropZone").addEventListener("drop",e=>readQR(e.dataTransfer.files[0]));
+["dragenter","dragover"].forEach(ev=>$("migrationDrop").addEventListener(ev,e=>{e.preventDefault();$("migrationDrop").classList.add("drag")}));
+["dragleave","drop"].forEach(ev=>$("migrationDrop").addEventListener(ev,e=>{e.preventDefault();$("migrationDrop").classList.remove("drag")}));
+$("migrationDrop").addEventListener("drop",e=>readQR(e.dataTransfer.files[0]));
 
-            dropZone.classList.add(
-                "drag"
-            );
-
-        }
-    );
-
+document.addEventListener("paste",e=>{
+ for(const item of e.clipboardData.items)if(item.type.startsWith("image/")){readQR(item.getAsFile());e.preventDefault();break}
 });
+$("decodeTextBtn").onclick=()=>decodeMigration($("migrationText").value.trim());
+$("copyAllBtn").onclick=copyAll;$("clearAccountsBtn").onclick=clearAccounts;$("accountsCopy").onclick=copyAll;$("accountsClear").onclick=clearAccounts;
 
+$("generateQRBtn").onclick=()=>generateQRTo($("qrInput").value,$("qrcode"),$("qrArea"),$("qrPlaceholder"),c=>qrCanvases.main=c,$("qrStatus"));
+$("copyQRBtn").onclick=()=>copyQR("main",$("qrStatus"));$("downloadQRBtn").onclick=()=>downloadQR("main",$("qrStatus"));
 
-["dragleave","drop"]
-.forEach(event => {
+$("qrPageGenerate").onclick=()=>generateQRTo($("qrPageInput").value,$("qrPageCanvas"),$("qrPageArea"),$("qrPagePlaceholder"),c=>qrCanvases.page=c,$("qrPageStatus"));
+$("qrPageCopy").onclick=()=>copyQR("page",$("qrPageStatus"));$("qrPageDownload").onclick=()=>downloadQR("page",$("qrPageStatus"));
 
-    dropZone.addEventListener(
-        event,
-        function(e){
-
-            e.preventDefault();
-
-            dropZone.classList.remove(
-                "drag"
-            );
-
-        }
-    );
-
-});
-
-
-dropZone.addEventListener(
-    "drop",
-    function(e){
-
-        const file =
-            e.dataTransfer.files[0];
-
-        if(
-            file &&
-            file.type.startsWith(
-                "image/"
-            )
-        ){
-
-            readQR(file);
-
-        }
-
-    }
-);
-
+$("input").addEventListener("keydown",e=>{if(e.ctrlKey&&e.key==="Enter")processMain()});
+$("qrInput").addEventListener("input",()=>{$("qrPageInput").value=$("qrInput").value});
+$("qrPageInput").addEventListener("input",()=>{$("qrInput").value=$("qrPageInput").value});
 
 /* =========================================================
-   PASTE IMAGE
+   SAFE HTML
 ========================================================= */
-
-document.addEventListener(
-    "paste",
-    function(e){
-
-        const items =
-            e.clipboardData.items;
-
-        for(
-            const item of items
-        ){
-
-            if(
-                item.type.startsWith(
-                    "image/"
-                )
-            ){
-
-                const file =
-                    item.getAsFile();
-
-                if(file){
-
-                    readQR(file);
-
-                    e.preventDefault();
-
-                    return;
-
-                }
-
-            }
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   GENERATE QR
-========================================================= */
-
-function generateQR(){
-
-    const value =
-        document.getElementById(
-            "qrInput"
-        ).value.trim();
-
-    if(!value){
-
-        showQRStatus(
-            "Hãy nhập Secret hoặc otpauth://.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    if(
-        typeof QRCode ===
-        "undefined"
-    ){
-
-        showQRStatus(
-            "Thư viện QR chưa được tải.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    let qrText =
-        value;
-
-    /*
-     * Nếu chỉ nhập Secret,
-     * tạo otpauth URI
-     */
-
-    if(
-        !value
-            .toLowerCase()
-            .startsWith(
-                "otpauth://"
-            )
-    ){
-
-        qrText =
-            "otpauth://totp/2FA" +
-            "?secret=" +
-            encodeURIComponent(
-                normalizeBase32(value)
-            ) +
-            "&issuer=2FA";
-
-    }
-
-    const qrcode =
-        document.getElementById(
-            "qrcode"
-        );
-
-    qrcode.innerHTML = "";
-
-    document.getElementById(
-        "qrPlaceholder"
-    ).style.display =
-        "none";
-
-    document.getElementById(
-        "qrArea"
-    ).classList.remove(
-        "empty"
-    );
-
-    try{
-
-        new QRCode(
-            qrcode,
-            {
-                text:qrText,
-
-                width:230,
-
-                height:230,
-
-                colorDark:"#000000",
-
-                colorLight:"#ffffff",
-
-                correctLevel:
-                    QRCode.CorrectLevel.M
-            }
-        );
-
-        setTimeout(
-            function(){
-
-                qrCanvas =
-                    qrcode.querySelector(
-                        "canvas"
-                    );
-
-            },
-            100
-        );
-
-        showQRStatus(
-            "✓ QR đã được tạo.",
-            "success"
-        );
-
-    }catch(error){
-
-        showQRStatus(
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   COPY QR
-========================================================= */
-
-async function copyQR(){
-
-    if(!qrCanvas){
-
-        qrCanvas =
-            document.querySelector(
-                "#qrcode canvas"
-            );
-
-    }
-
-    if(!qrCanvas){
-
-        showQRStatus(
-            "Chưa có QR.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    qrCanvas.toBlob(
-        async function(blob){
-
-            try{
-
-                await navigator.clipboard.write([
-                    new ClipboardItem({
-                        "image/png":blob
-                    })
-                ]);
-
-                showQRStatus(
-                    "✓ Đã copy ảnh QR.",
-                    "success"
-                );
-
-            }catch{
-
-                showQRStatus(
-                    "Trình duyệt không cho copy ảnh trực tiếp.",
-                    "error"
-                );
-
-            }
-
-        },
-        "image/png"
-    );
-
-}
-
-
-/* =========================================================
-   DOWNLOAD QR
-========================================================= */
-
-function downloadQR(){
-
-    if(!qrCanvas){
-
-        qrCanvas =
-            document.querySelector(
-                "#qrcode canvas"
-            );
-
-    }
-
-    if(!qrCanvas){
-
-        showQRStatus(
-            "Chưa có QR.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    const link =
-        document.createElement("a");
-
-    link.download =
-        "2FA-QR.png";
-
-    link.href =
-        qrCanvas.toDataURL(
-            "image/png"
-        );
-
-    link.click();
-
-}
-
-
-/* =========================================================
-   RESET
-========================================================= */
-
-function resetAll(){
-
-    secret = "";
-
-    issuer = "";
-
-    account = "";
-
-    algorithm = "SHA1";
-
-    digits = 6;
-
-    period = 30;
-
-    if(otpInterval){
-
-        clearInterval(
-            otpInterval
-        );
-
-        otpInterval = null;
-
-    }
-
-    input.value = "";
-
-    codeEl.textContent =
-        "------";
-
-    codeEl.classList.add(
-        "empty"
-    );
-
-    timerEl.textContent =
-        "Chưa có Secret";
-
-    progressBar.style.width =
-        "100%";
-
-    document.getElementById(
-        "secretInfo"
-    ).textContent = "-";
-
-    document.getElementById(
-        "accountInfo"
-    ).textContent = "-";
-
-    document.getElementById(
-        "issuerInfo"
-    ).textContent = "-";
-
-    document.getElementById(
-        "algorithmInfo"
-    ).textContent = "SHA1";
-
-    document.getElementById(
-        "digitsInfo"
-    ).textContent = "6";
-
-    document.getElementById(
-        "periodInfo"
-    ).textContent = "30s";
-
-    hideStatus();
-
-}
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function showStatus(
-    text,
-    type
-){
-
-    const el =
-        document.getElementById(
-            "status"
-        );
-
-    el.textContent =
-        text;
-
-    el.className =
-        "status show " +
-        type;
-
-}
-
-
-function hideStatus(){
-
-    document.getElementById(
-        "status"
-    ).className =
-        "status";
-
-}
-
-
-function showQRStatus(
-    text,
-    type
-){
-
-    const el =
-        document.getElementById(
-            "qrStatus"
-        );
-
-    el.textContent =
-        text;
-
-    el.className =
-        "status show " +
-        type;
-
-}
-
-
-/* =========================================================
-   AUTO PROCESS TEXT
-========================================================= */
-
-input.addEventListener(
-    "input",
-    function(){
-
-        const value =
-            input.value.trim();
-
-        /*
-         * Không tự chạy mỗi ký tự khi
-         * người dùng đang nhập Secret.
-         *
-         * Chạy khi:
-         *
-         * - otpauth hoàn chỉnh
-         * - hoặc Secret đủ dài
-         */
-
-        if(
-            value
-                .toLowerCase()
-                .startsWith(
-                    "otpauth://"
-                )
-        ){
-
-            processInput();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   ENTER / CTRL ENTER
-========================================================= */
-
-input.addEventListener(
-    "keydown",
-    function(e){
-
-        if(
-            e.ctrlKey &&
-            e.key === "Enter"
-        ){
-
-            processInput();
-
-        }
-
-    }
-);
-
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 
 /* =========================================================
    INIT
 ========================================================= */
-
-updateTimer();
-
+lucide.createIcons();
+renderAccounts();
+setInterval(()=>{updateTimer();updateAccountOTPs()},1000);
 </script>
-
 </body>
 </html>
