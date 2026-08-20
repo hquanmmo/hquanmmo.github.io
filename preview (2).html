@@ -1,0 +1,2343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>2FA Tool</title>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+:root{
+    --bg:#080b12;
+    --card:#111722;
+    --card2:#151d2b;
+    --border:rgba(255,255,255,.09);
+    --text:#f5f7fb;
+    --muted:#8c97aa;
+    --primary:#6675ff;
+    --primary2:#8b5cf6;
+    --green:#20d89a;
+    --red:#ff6378;
+    --yellow:#ffca58;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    color:var(--text);
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 15% 10%,
+            rgba(102,117,255,.18),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 85% 10%,
+            rgba(139,92,246,.14),
+            transparent 30%
+        ),
+        var(--bg);
+}
+
+.container{
+    width:min(1100px,calc(100% - 30px));
+    margin:0 auto;
+    padding:35px 0 50px;
+}
+
+.header{
+    text-align:center;
+    margin-bottom:28px;
+}
+
+.logo{
+    width:64px;
+    height:64px;
+    border-radius:18px;
+    margin:auto;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary2)
+        );
+
+    box-shadow:
+        0 20px 50px rgba(102,117,255,.25);
+}
+
+h1{
+    margin:16px 0 7px;
+    font-size:30px;
+}
+
+.subtitle{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.main{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.card{
+    background:rgba(17,23,34,.86);
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:20px;
+
+    backdrop-filter:blur(18px);
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.25);
+}
+
+.card-header{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    margin-bottom:18px;
+}
+
+.card-icon{
+    width:38px;
+    height:38px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:11px;
+
+    background:
+        rgba(102,117,255,.12);
+}
+
+.card-title{
+    font-size:16px;
+    font-weight:700;
+}
+
+.card-subtitle{
+    color:var(--muted);
+    font-size:11px;
+    margin-top:3px;
+}
+
+.drop-zone{
+    min-height:220px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    text-align:center;
+
+    border:
+        1.5px dashed
+        rgba(255,255,255,.15);
+
+    border-radius:17px;
+
+    cursor:pointer;
+
+    background:
+        rgba(255,255,255,.018);
+
+    transition:.2s;
+}
+
+.drop-zone:hover,
+.drop-zone.drag{
+    border-color:var(--primary);
+
+    background:
+        rgba(102,117,255,.07);
+}
+
+.upload-icon{
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.drop-title{
+    font-weight:700;
+    font-size:14px;
+}
+
+.drop-text{
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.7;
+    margin-top:5px;
+}
+
+input[type=file]{
+    display:none;
+}
+
+textarea{
+    width:100%;
+    min-height:125px;
+
+    resize:vertical;
+
+    background:
+        rgba(0,0,0,.25);
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:13px;
+
+    padding:13px;
+
+    color:var(--text);
+
+    outline:none;
+
+    font-family:
+        Consolas,
+        monospace;
+
+    font-size:12px;
+
+    line-height:1.6;
+}
+
+textarea:focus{
+    border-color:
+        rgba(102,117,255,.7);
+}
+
+.buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+}
+
+button{
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+
+    color:white;
+
+    padding:10px 13px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:12px;
+    font-weight:600;
+
+    transition:.18s;
+}
+
+button:hover{
+    background:
+        rgba(255,255,255,.12);
+
+    transform:
+        translateY(-1px);
+}
+
+.primary{
+    border:0;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary2)
+        );
+}
+
+.green{
+    color:#58e5b0;
+
+    background:
+        rgba(32,216,154,.09);
+}
+
+.red{
+    color:#ff7588;
+
+    background:
+        rgba(255,99,120,.08);
+}
+
+.code-box{
+    margin-top:18px;
+
+    padding:20px;
+
+    border:
+        1px solid
+        rgba(102,117,255,.2);
+
+    border-radius:18px;
+
+    text-align:center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(102,117,255,.10),
+            rgba(0,0,0,.12)
+        );
+}
+
+.code-label{
+    color:var(--muted);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+}
+
+.code{
+    font-family:
+        Consolas,
+        monospace;
+
+    font-size:42px;
+    font-weight:800;
+
+    letter-spacing:8px;
+
+    margin:
+        9px 0 4px;
+
+    cursor:pointer;
+
+    user-select:all;
+}
+
+.code.empty{
+    color:
+        rgba(255,255,255,.2);
+
+    letter-spacing:3px;
+}
+
+.timer{
+    color:var(--muted);
+    font-size:11px;
+}
+
+.progress{
+    height:4px;
+
+    margin-top:12px;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    background:
+        rgba(255,255,255,.06);
+}
+
+.progress-bar{
+    height:100%;
+    width:100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--primary),
+            var(--primary2)
+        );
+
+    transition:
+        width 1s linear;
+}
+
+.info{
+    margin-top:16px;
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+
+    gap:8px;
+}
+
+.info-item{
+    padding:10px;
+
+    border-radius:11px;
+
+    background:
+        rgba(255,255,255,.035);
+
+    border:
+        1px solid
+        rgba(255,255,255,.05);
+}
+
+.info-label{
+    color:var(--muted);
+    font-size:9px;
+
+    text-transform:uppercase;
+
+    margin-bottom:4px;
+}
+
+.info-value{
+    font-family:Consolas,monospace;
+
+    font-size:11px;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+}
+
+.status{
+    display:none;
+
+    margin-top:11px;
+
+    padding:10px 12px;
+
+    border-radius:10px;
+
+    font-size:11px;
+}
+
+.status.show{
+    display:block;
+}
+
+.status.success{
+    color:#55e6ad;
+    background:rgba(32,216,154,.08);
+}
+
+.status.error{
+    color:#ff7b8e;
+    background:rgba(255,99,120,.08);
+}
+
+.status.info{
+    color:#aeb7ff;
+    background:rgba(102,117,255,.08);
+}
+
+.qr-container{
+    min-height:250px;
+
+    margin-top:15px;
+
+    border-radius:16px;
+
+    background:white;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+}
+
+.qr-container.empty{
+    background:
+        repeating-linear-gradient(
+            45deg,
+            #151c29,
+            #151c29 10px,
+            #121824 10px,
+            #121824 20px
+        );
+
+    color:#727d90;
+
+    font-size:12px;
+}
+
+#qrcode{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.footer{
+    margin-top:18px;
+
+    padding:14px 17px;
+
+    border-radius:14px;
+
+    border:
+        1px solid
+        var(--border);
+
+    color:var(--muted);
+
+    font-size:11px;
+
+    line-height:1.7;
+}
+
+@media(max-width:800px){
+
+    .main{
+        grid-template-columns:1fr;
+    }
+
+    .code{
+        font-size:34px;
+        letter-spacing:6px;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div class="logo">
+            🔐
+        </div>
+
+        <h1>
+            2FA Authenticator
+        </h1>
+
+        <div class="subtitle">
+            Secret · QR · OTPATH → mã xác thực 6 số
+        </div>
+
+    </div>
+
+
+    <div class="main">
+
+
+        <!-- LEFT -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div class="card-icon">
+                    📷
+                </div>
+
+                <div>
+                    <div class="card-title">
+                        QR / Secret → 2FA Code
+                    </div>
+
+                    <div class="card-subtitle">
+                        Dán QR hoặc Secret để lấy mã
+                    </div>
+                </div>
+
+            </div>
+
+
+            <label
+                class="drop-zone"
+                id="dropZone"
+                for="fileInput">
+
+                <div>
+
+                    <div class="upload-icon">
+                        📸
+                    </div>
+
+                    <div class="drop-title">
+                        Dán ảnh QR bằng Ctrl + V
+                    </div>
+
+                    <div class="drop-text">
+                        hoặc kéo ảnh QR vào đây<br>
+                        PNG · JPG · JPEG · WEBP
+                    </div>
+
+                </div>
+
+            </label>
+
+            <input
+                type="file"
+                id="fileInput"
+                accept="image/*"
+            >
+
+
+            <div style="margin-top:15px">
+
+                <textarea
+                    id="input"
+                    placeholder="Dán Secret hoặc otpauth:// vào đây...">
+                </textarea>
+
+            </div>
+
+
+            <div class="buttons">
+
+                <button
+                    class="primary"
+                    onclick="processInput()">
+
+                    🔑 Lấy mã
+
+                </button>
+
+                <button
+                    onclick="pasteSecret()">
+
+                    📋 Paste
+
+                </button>
+
+                <button
+                    class="green"
+                    onclick="copyCode()">
+
+                    Copy mã
+
+                </button>
+
+                <button
+                    class="red"
+                    onclick="resetAll()">
+
+                    🗑 Xóa
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="status"
+                class="status">
+            </div>
+
+
+            <!-- CODE -->
+
+            <div class="code-box">
+
+                <div class="code-label">
+                    Current 2FA Code
+                </div>
+
+                <div
+                    id="code"
+                    class="code empty"
+                    onclick="copyCode()">
+
+                    ------
+
+                </div>
+
+                <div
+                    id="timer"
+                    class="timer">
+
+                    Chưa có Secret
+
+                </div>
+
+                <div class="progress">
+
+                    <div
+                        id="progressBar"
+                        class="progress-bar">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- INFO -->
+
+            <div class="info">
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Secret
+                    </div>
+
+                    <div
+                        id="secretInfo"
+                        class="info-value">
+
+                        -
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Account
+                    </div>
+
+                    <div
+                        id="accountInfo"
+                        class="info-value">
+
+                        -
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Issuer
+                    </div>
+
+                    <div
+                        id="issuerInfo"
+                        class="info-value">
+
+                        -
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Algorithm
+                    </div>
+
+                    <div
+                        id="algorithmInfo"
+                        class="info-value">
+
+                        SHA1
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Digits
+                    </div>
+
+                    <div
+                        id="digitsInfo"
+                        class="info-value">
+
+                        6
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Period
+                    </div>
+
+                    <div
+                        id="periodInfo"
+                        class="info-value">
+
+                        30
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- RIGHT -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div class="card-icon">
+                    🔄
+                </div>
+
+                <div>
+
+                    <div class="card-title">
+                        Secret → QR
+                    </div>
+
+                    <div class="card-subtitle">
+                        Tạo lại QR từ Secret / otpauth
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <textarea
+                id="qrInput"
+                placeholder="Dán Secret hoặc otpauth:// để tạo QR...">
+            </textarea>
+
+
+            <div class="buttons">
+
+                <button
+                    class="primary"
+                    onclick="generateQR()">
+
+                    ✨ Tạo QR
+
+                </button>
+
+                <button
+                    onclick="copyQR()">
+
+                    🖼 Copy ảnh
+
+                </button>
+
+                <button
+                    onclick="downloadQR()">
+
+                    ⬇ Tải PNG
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="qrStatus"
+                class="status">
+            </div>
+
+
+            <div
+                id="qrArea"
+                class="qr-container empty">
+
+                <span id="qrPlaceholder">
+                    QR sẽ xuất hiện ở đây
+                </span>
+
+                <div id="qrcode"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer">
+
+        🔒 <b>Privacy:</b>
+        Secret và mã 2FA được xử lý trực tiếp trong trình duyệt.
+        Không gửi Secret lên server.
+
+        <br>
+
+        ⚠️ Để mã giống Google Authenticator,
+        Secret, Algorithm, Digits, Period và thời gian hệ thống
+        phải giống nhau.
+
+    </div>
+
+</div>
+
+
+<canvas
+    id="canvas"
+    style="display:none">
+</canvas>
+
+
+<script>
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let secret = "";
+let algorithm = "SHA1";
+let digits = 6;
+let period = 30;
+
+let issuer = "";
+let account = "";
+
+let otpInterval = null;
+
+let qrCanvas = null;
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const input =
+    document.getElementById("input");
+
+const codeEl =
+    document.getElementById("code");
+
+const timerEl =
+    document.getElementById("timer");
+
+const progressBar =
+    document.getElementById("progressBar");
+
+const dropZone =
+    document.getElementById("dropZone");
+
+const fileInput =
+    document.getElementById("fileInput");
+
+
+/* =========================================================
+   NORMALIZE BASE32
+========================================================= */
+
+function normalizeBase32(value){
+
+    return value
+        .toUpperCase()
+        .replace(/\s+/g,"")
+        .replace(/-/g,"")
+        .replace(/=/g,"");
+
+}
+
+
+/* =========================================================
+   BASE32 DECODER
+========================================================= */
+
+function base32ToBytes(base32){
+
+    const alphabet =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+    base32 =
+        normalizeBase32(base32);
+
+    let bits = "";
+    let bytes = [];
+
+    for(const char of base32){
+
+        const index =
+            alphabet.indexOf(char);
+
+        if(index === -1){
+
+            throw new Error(
+                "Secret không phải Base32 hợp lệ."
+            );
+
+        }
+
+        bits +=
+            index
+                .toString(2)
+                .padStart(5,"0");
+
+    }
+
+    for(
+        let i = 0;
+        i + 8 <= bits.length;
+        i += 8
+    ){
+
+        bytes.push(
+            parseInt(
+                bits.substring(i,i+8),
+                2
+            )
+        );
+
+    }
+
+    return new Uint8Array(bytes);
+
+}
+
+
+/* =========================================================
+   PARSE OTPAUTH
+========================================================= */
+
+function parseOTPAuth(value){
+
+    value =
+        value.trim();
+
+    /*
+     * Nếu là URL otpauth
+     */
+
+    if(
+        value.toLowerCase()
+        .startsWith("otpauth://")
+    ){
+
+        const url =
+            new URL(value);
+
+        const params =
+            url.searchParams;
+
+        const parsedSecret =
+            params.get("secret");
+
+        if(!parsedSecret){
+
+            throw new Error(
+                "OTPAUTH không có Secret."
+            );
+
+        }
+
+        secret =
+            normalizeBase32(parsedSecret);
+
+        algorithm =
+            (
+                params.get("algorithm")
+                || "SHA1"
+            ).toUpperCase();
+
+        digits =
+            parseInt(
+                params.get("digits")
+                || "6",
+                10
+            );
+
+        period =
+            parseInt(
+                params.get("period")
+                || "30",
+                10
+            );
+
+        issuer =
+            params.get("issuer")
+            || "";
+
+        /*
+         * Account nằm trong pathname
+         */
+
+        let label =
+            decodeURIComponent(
+                url.pathname.substring(1)
+            );
+
+        if(label){
+
+            /*
+             * issuer:account
+             */
+
+            if(label.includes(":")){
+
+                const parts =
+                    label.split(":");
+
+                if(!issuer){
+
+                    issuer =
+                        parts.shift();
+                }
+
+                account =
+                    parts.join(":");
+
+            }else{
+
+                account =
+                    label;
+
+            }
+
+        }
+
+        return;
+
+    }
+
+
+    /*
+     * Nếu chỉ là Secret
+     */
+
+    secret =
+        normalizeBase32(value);
+
+    algorithm =
+        "SHA1";
+
+    digits =
+        6;
+
+    period =
+        30;
+
+    issuer =
+        "";
+
+    account =
+        "";
+
+}
+
+
+/* =========================================================
+   HMAC
+========================================================= */
+
+async function hmacSHA1(
+    key,
+    data
+){
+
+    const cryptoKey =
+        await crypto.subtle.importKey(
+            "raw",
+            key,
+            {
+                name:"HMAC",
+                hash:"SHA-1"
+            },
+            false,
+            ["sign"]
+        );
+
+    const signature =
+        await crypto.subtle.sign(
+            "HMAC",
+            cryptoKey,
+            data
+        );
+
+    return new Uint8Array(signature);
+
+}
+
+
+async function hmacSHA256(
+    key,
+    data
+){
+
+    const cryptoKey =
+        await crypto.subtle.importKey(
+            "raw",
+            key,
+            {
+                name:"HMAC",
+                hash:"SHA-256"
+            },
+            false,
+            ["sign"]
+        );
+
+    const signature =
+        await crypto.subtle.sign(
+            "HMAC",
+            cryptoKey,
+            data
+        );
+
+    return new Uint8Array(signature);
+
+}
+
+
+async function hmacSHA512(
+    key,
+    data
+){
+
+    const cryptoKey =
+        await crypto.subtle.importKey(
+            "raw",
+            key,
+            {
+                name:"HMAC",
+                hash:"SHA-512"
+            },
+            false,
+            ["sign"]
+        );
+
+    const signature =
+        await crypto.subtle.sign(
+            "HMAC",
+            cryptoKey,
+            data
+        );
+
+    return new Uint8Array(signature);
+
+}
+
+
+/* =========================================================
+   TOTP
+========================================================= */
+
+async function generateTOTP(){
+
+    if(!secret){
+
+        return null;
+
+    }
+
+    const key =
+        base32ToBytes(secret);
+
+    /*
+     * Unix timestamp
+     */
+
+    const counter =
+        Math.floor(
+            Date.now() / 1000 / period
+        );
+
+    /*
+     * 8 byte big endian counter
+     */
+
+    const counterBytes =
+        new Uint8Array(8);
+
+    let temp =
+        counter;
+
+    for(
+        let i = 7;
+        i >= 0;
+        i--
+    ){
+
+        counterBytes[i] =
+            temp & 0xff;
+
+        temp =
+            Math.floor(
+                temp / 256
+            );
+
+    }
+
+
+    let hash;
+
+    if(algorithm === "SHA256"){
+
+        hash =
+            await hmacSHA256(
+                key,
+                counterBytes
+            );
+
+    }else if(
+        algorithm === "SHA512"
+    ){
+
+        hash =
+            await hmacSHA512(
+                key,
+                counterBytes
+            );
+
+    }else{
+
+        hash =
+            await hmacSHA1(
+                key,
+                counterBytes
+            );
+
+    }
+
+
+    /*
+     * Dynamic truncation
+     */
+
+    const offset =
+        hash[hash.length - 1] & 0x0f;
+
+    const binary =
+        (
+            ((hash[offset] & 0x7f) << 24) |
+            ((hash[offset + 1] & 0xff) << 16) |
+            ((hash[offset + 2] & 0xff) << 8) |
+            (hash[offset + 3] & 0xff)
+        ) >>> 0;
+
+
+    const mod =
+        Math.pow(10,digits);
+
+    return String(
+        binary % mod
+    ).padStart(
+        digits,
+        "0"
+    );
+
+}
+
+
+/* =========================================================
+   UPDATE OTP
+========================================================= */
+
+async function updateOTP(){
+
+    if(!secret){
+
+        codeEl.textContent =
+            "------";
+
+        codeEl.classList.add("empty");
+
+        timerEl.textContent =
+            "Chưa có Secret";
+
+        progressBar.style.width =
+            "100%";
+
+        return;
+
+    }
+
+    try{
+
+        const code =
+            await generateTOTP();
+
+        codeEl.textContent =
+            code;
+
+        codeEl.classList.remove("empty");
+
+        updateTimer();
+
+    }catch(error){
+
+        console.error(error);
+
+        showStatus(
+            "Secret không hợp lệ: " +
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+function updateTimer(){
+
+    const now =
+        Math.floor(
+            Date.now() / 1000
+        );
+
+    const remaining =
+        period -
+        (now % period);
+
+    const elapsed =
+        period -
+        remaining;
+
+    const percentage =
+        (
+            remaining / period
+        ) * 100;
+
+    timerEl.textContent =
+        "Mã mới sau " +
+        remaining +
+        " giây";
+
+    progressBar.style.width =
+        percentage + "%";
+
+}
+
+
+/* =========================================================
+   START TIMER
+========================================================= */
+
+function startTimer(){
+
+    if(otpInterval){
+
+        clearInterval(
+            otpInterval
+        );
+
+    }
+
+    updateOTP();
+
+    otpInterval =
+        setInterval(
+            updateOTP,
+            1000
+        );
+
+}
+
+
+/* =========================================================
+   PROCESS INPUT
+========================================================= */
+
+async function processInput(){
+
+    const value =
+        input.value.trim();
+
+    if(!value){
+
+        showStatus(
+            "Hãy dán Secret hoặc otpauth:// trước.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        parseOTPAuth(value);
+
+        updateInfo();
+
+        startTimer();
+
+        /*
+         * Đồng bộ input QR
+         */
+
+        document.getElementById(
+            "qrInput"
+        ).value = value;
+
+        showStatus(
+            "✓ Đã nhận Secret. Mã 2FA đang được tạo.",
+            "success"
+        );
+
+    }catch(error){
+
+        showStatus(
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   PASTE SECRET
+========================================================= */
+
+async function pasteSecret(){
+
+    try{
+
+        const text =
+            await navigator.clipboard.readText();
+
+        input.value =
+            text;
+
+        processInput();
+
+    }catch{
+
+        showStatus(
+            "Không thể đọc clipboard. Hãy Ctrl + V vào ô.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   UPDATE INFO
+========================================================= */
+
+function updateInfo(){
+
+    document.getElementById(
+        "secretInfo"
+    ).textContent =
+        secret || "-";
+
+    document.getElementById(
+        "accountInfo"
+    ).textContent =
+        account || "-";
+
+    document.getElementById(
+        "issuerInfo"
+    ).textContent =
+        issuer || "-";
+
+    document.getElementById(
+        "algorithmInfo"
+    ).textContent =
+        algorithm;
+
+    document.getElementById(
+        "digitsInfo"
+    ).textContent =
+        digits;
+
+    document.getElementById(
+        "periodInfo"
+    ).textContent =
+        period + "s";
+
+}
+
+
+/* =========================================================
+   COPY CODE
+========================================================= */
+
+async function copyCode(){
+
+    const code =
+        codeEl.textContent.trim();
+
+    if(
+        !code ||
+        code === "------"
+    ){
+
+        showStatus(
+            "Chưa có mã để copy.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        await navigator.clipboard.writeText(
+            code
+        );
+
+        showStatus(
+            "✓ Đã copy mã " + code,
+            "success"
+        );
+
+    }catch{
+
+        const temp =
+            document.createElement("textarea");
+
+        temp.value =
+            code;
+
+        document.body.appendChild(temp);
+
+        temp.select();
+
+        document.execCommand("copy");
+
+        temp.remove();
+
+        showStatus(
+            "✓ Đã copy mã.",
+            "success"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   QR IMAGE READING
+========================================================= */
+
+function readQR(file){
+
+    showStatus(
+        "Đang đọc QR...",
+        "info"
+    );
+
+    const reader =
+        new FileReader();
+
+    reader.onload =
+        function(){
+
+            const img =
+                new Image();
+
+            img.onload =
+                function(){
+
+                    const canvas =
+                        document.getElementById(
+                            "canvas"
+                        );
+
+                    let width =
+                        img.naturalWidth;
+
+                    let height =
+                        img.naturalHeight;
+
+                    const max =
+                        3000;
+
+                    if(
+                        Math.max(
+                            width,
+                            height
+                        ) > max
+                    ){
+
+                        const scale =
+                            max /
+                            Math.max(
+                                width,
+                                height
+                            );
+
+                        width =
+                            Math.round(
+                                width * scale
+                            );
+
+                        height =
+                            Math.round(
+                                height * scale
+                            );
+
+                    }
+
+                    canvas.width =
+                        width;
+
+                    canvas.height =
+                        height;
+
+                    const ctx =
+                        canvas.getContext(
+                            "2d",
+                            {
+                                willReadFrequently:true
+                            }
+                        );
+
+                    ctx.drawImage(
+                        img,
+                        0,
+                        0,
+                        width,
+                        height
+                    );
+
+                    const data =
+                        ctx.getImageData(
+                            0,
+                            0,
+                            width,
+                            height
+                        );
+
+                    const qr =
+                        jsQR(
+                            data.data,
+                            width,
+                            height,
+                            {
+                                inversionAttempts:
+                                    "attemptBoth"
+                            }
+                        );
+
+                    if(
+                        qr &&
+                        qr.data
+                    ){
+
+                        input.value =
+                            qr.data;
+
+                        /*
+                         * Tự động xử lý
+                         */
+
+                        processInput();
+
+                        /*
+                         * Đưa sang ô tạo QR
+                         */
+
+                        document.getElementById(
+                            "qrInput"
+                        ).value =
+                            qr.data;
+
+                        showStatus(
+                            "✓ Đã đọc QR thành công.",
+                            "success"
+                        );
+
+                    }else{
+
+                        showStatus(
+                            "Không tìm thấy QR trong ảnh.",
+                            "error"
+                        );
+
+                    }
+
+                };
+
+            img.src =
+                reader.result;
+
+        };
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================================
+   FILE INPUT
+========================================================= */
+
+fileInput.addEventListener(
+    "change",
+    function(e){
+
+        const file =
+            e.target.files[0];
+
+        if(file){
+
+            readQR(file);
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   DRAG DROP
+========================================================= */
+
+["dragenter","dragover"]
+.forEach(event => {
+
+    dropZone.addEventListener(
+        event,
+        function(e){
+
+            e.preventDefault();
+
+            dropZone.classList.add(
+                "drag"
+            );
+
+        }
+    );
+
+});
+
+
+["dragleave","drop"]
+.forEach(event => {
+
+    dropZone.addEventListener(
+        event,
+        function(e){
+
+            e.preventDefault();
+
+            dropZone.classList.remove(
+                "drag"
+            );
+
+        }
+    );
+
+});
+
+
+dropZone.addEventListener(
+    "drop",
+    function(e){
+
+        const file =
+            e.dataTransfer.files[0];
+
+        if(
+            file &&
+            file.type.startsWith(
+                "image/"
+            )
+        ){
+
+            readQR(file);
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   PASTE IMAGE
+========================================================= */
+
+document.addEventListener(
+    "paste",
+    function(e){
+
+        const items =
+            e.clipboardData.items;
+
+        for(
+            const item of items
+        ){
+
+            if(
+                item.type.startsWith(
+                    "image/"
+                )
+            ){
+
+                const file =
+                    item.getAsFile();
+
+                if(file){
+
+                    readQR(file);
+
+                    e.preventDefault();
+
+                    return;
+
+                }
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   GENERATE QR
+========================================================= */
+
+function generateQR(){
+
+    const value =
+        document.getElementById(
+            "qrInput"
+        ).value.trim();
+
+    if(!value){
+
+        showQRStatus(
+            "Hãy nhập Secret hoặc otpauth://.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    if(
+        typeof QRCode ===
+        "undefined"
+    ){
+
+        showQRStatus(
+            "Thư viện QR chưa được tải.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    let qrText =
+        value;
+
+    /*
+     * Nếu chỉ nhập Secret,
+     * tạo otpauth URI
+     */
+
+    if(
+        !value
+            .toLowerCase()
+            .startsWith(
+                "otpauth://"
+            )
+    ){
+
+        qrText =
+            "otpauth://totp/2FA" +
+            "?secret=" +
+            encodeURIComponent(
+                normalizeBase32(value)
+            ) +
+            "&issuer=2FA";
+
+    }
+
+    const qrcode =
+        document.getElementById(
+            "qrcode"
+        );
+
+    qrcode.innerHTML = "";
+
+    document.getElementById(
+        "qrPlaceholder"
+    ).style.display =
+        "none";
+
+    document.getElementById(
+        "qrArea"
+    ).classList.remove(
+        "empty"
+    );
+
+    try{
+
+        new QRCode(
+            qrcode,
+            {
+                text:qrText,
+
+                width:230,
+
+                height:230,
+
+                colorDark:"#000000",
+
+                colorLight:"#ffffff",
+
+                correctLevel:
+                    QRCode.CorrectLevel.M
+            }
+        );
+
+        setTimeout(
+            function(){
+
+                qrCanvas =
+                    qrcode.querySelector(
+                        "canvas"
+                    );
+
+            },
+            100
+        );
+
+        showQRStatus(
+            "✓ QR đã được tạo.",
+            "success"
+        );
+
+    }catch(error){
+
+        showQRStatus(
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   COPY QR
+========================================================= */
+
+async function copyQR(){
+
+    if(!qrCanvas){
+
+        qrCanvas =
+            document.querySelector(
+                "#qrcode canvas"
+            );
+
+    }
+
+    if(!qrCanvas){
+
+        showQRStatus(
+            "Chưa có QR.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    qrCanvas.toBlob(
+        async function(blob){
+
+            try{
+
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        "image/png":blob
+                    })
+                ]);
+
+                showQRStatus(
+                    "✓ Đã copy ảnh QR.",
+                    "success"
+                );
+
+            }catch{
+
+                showQRStatus(
+                    "Trình duyệt không cho copy ảnh trực tiếp.",
+                    "error"
+                );
+
+            }
+
+        },
+        "image/png"
+    );
+
+}
+
+
+/* =========================================================
+   DOWNLOAD QR
+========================================================= */
+
+function downloadQR(){
+
+    if(!qrCanvas){
+
+        qrCanvas =
+            document.querySelector(
+                "#qrcode canvas"
+            );
+
+    }
+
+    if(!qrCanvas){
+
+        showQRStatus(
+            "Chưa có QR.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const link =
+        document.createElement("a");
+
+    link.download =
+        "2FA-QR.png";
+
+    link.href =
+        qrCanvas.toDataURL(
+            "image/png"
+        );
+
+    link.click();
+
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+function resetAll(){
+
+    secret = "";
+
+    issuer = "";
+
+    account = "";
+
+    algorithm = "SHA1";
+
+    digits = 6;
+
+    period = 30;
+
+    if(otpInterval){
+
+        clearInterval(
+            otpInterval
+        );
+
+        otpInterval = null;
+
+    }
+
+    input.value = "";
+
+    codeEl.textContent =
+        "------";
+
+    codeEl.classList.add(
+        "empty"
+    );
+
+    timerEl.textContent =
+        "Chưa có Secret";
+
+    progressBar.style.width =
+        "100%";
+
+    document.getElementById(
+        "secretInfo"
+    ).textContent = "-";
+
+    document.getElementById(
+        "accountInfo"
+    ).textContent = "-";
+
+    document.getElementById(
+        "issuerInfo"
+    ).textContent = "-";
+
+    document.getElementById(
+        "algorithmInfo"
+    ).textContent = "SHA1";
+
+    document.getElementById(
+        "digitsInfo"
+    ).textContent = "6";
+
+    document.getElementById(
+        "periodInfo"
+    ).textContent = "30s";
+
+    hideStatus();
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function showStatus(
+    text,
+    type
+){
+
+    const el =
+        document.getElementById(
+            "status"
+        );
+
+    el.textContent =
+        text;
+
+    el.className =
+        "status show " +
+        type;
+
+}
+
+
+function hideStatus(){
+
+    document.getElementById(
+        "status"
+    ).className =
+        "status";
+
+}
+
+
+function showQRStatus(
+    text,
+    type
+){
+
+    const el =
+        document.getElementById(
+            "qrStatus"
+        );
+
+    el.textContent =
+        text;
+
+    el.className =
+        "status show " +
+        type;
+
+}
+
+
+/* =========================================================
+   AUTO PROCESS TEXT
+========================================================= */
+
+input.addEventListener(
+    "input",
+    function(){
+
+        const value =
+            input.value.trim();
+
+        /*
+         * Không tự chạy mỗi ký tự khi
+         * người dùng đang nhập Secret.
+         *
+         * Chạy khi:
+         *
+         * - otpauth hoàn chỉnh
+         * - hoặc Secret đủ dài
+         */
+
+        if(
+            value
+                .toLowerCase()
+                .startsWith(
+                    "otpauth://"
+                )
+        ){
+
+            processInput();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ENTER / CTRL ENTER
+========================================================= */
+
+input.addEventListener(
+    "keydown",
+    function(e){
+
+        if(
+            e.ctrlKey &&
+            e.key === "Enter"
+        ){
+
+            processInput();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INIT
+========================================================= */
+
+updateTimer();
+
+</script>
+
+</body>
+</html>
