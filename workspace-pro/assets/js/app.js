@@ -3,7 +3,7 @@ import {downloadText, toast, confirmAction} from './utils.js';
 import {Bookmarks} from './modules/bookmarks.js';
 import {Todos} from './modules/todos.js';
 import {PowerShell} from './modules/powershell.js';
-import {TwoFA} from './modules/twofa.js?v=2';
+import {TwoFA} from './modules/twofa.js?v=3';
 
 const modules = {bookmark:Bookmarks,todo:Todos,powershell:PowerShell,twofa:TwoFA};
 let active = null;
