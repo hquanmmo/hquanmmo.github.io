@@ -246,11 +246,25 @@ export function render(){
   renderMigration();
 }
 
-export const TwoFA={
-  init(){
-    if(pasteBound)return;
-    document.addEventListener('paste',globalPasteHandler);
-    pasteBound=true;
+export const TwoFA = {
+
+  init() {
+
+    if (pasteBound) {
+      return;
+    }
+
+    // true = capture phase
+    // Bắt Ctrl+V trước textarea/input
+    document.addEventListener(
+      'paste',
+      globalPasteHandler,
+      true
+    );
+
+    pasteBound = true;
   },
+
   render
+
 };
