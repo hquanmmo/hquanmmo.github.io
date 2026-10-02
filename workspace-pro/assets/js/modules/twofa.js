@@ -2182,77 +2182,147 @@ function generateQR(
 ========================================================= */
 
 
-function parseMigrationQR(
-  uri
-) {
+/* =========================================================
+   GOOGLE AUTHENTICATOR MIGRATION
+========================================================= */
+
+function parseMigrationQR(uri) {
+
+  uri = String(uri || '').trim();
 
   if (
     !uri.startsWith(
-      'otpauth-migration://'
+      'otpauth-migration://offline?data='
     )
   ) {
-
     throw new Error(
-      'Không phải Migration QR.'
+      'Không phải Google Authenticator Migration QR.'
     );
-
   }
 
 
-  let url;
-
-
-  try {
-
-    url =
-      new URL(uri);
-
-  } catch {
-
-    throw new Error(
-      'Migration URI không hợp lệ.'
-    );
-
-  }
-
-
-  const encoded =
-    url
-      .searchParams
-      .get('data');
+  /*
+   * KHÔNG dùng new URL() / URLSearchParams ở đây.
+   *
+   * Payload Migration là Base64 nằm thẳng
+   * sau data=. Lấy nguyên chuỗi giống code cũ.
+   */
+  let encoded =
+    uri.split('data=')[1];
 
 
   if (!encoded) {
-
     throw new Error(
-      'Migration QR không có dữ liệu.'
+      'Migration QR không có payload.'
+    );
+  }
+
+
+  /*
+   * Nếu URI có thêm & ở cuối
+   * chỉ lấy đúng parameter data.
+   */
+  encoded =
+    encoded.split('&')[0];
+
+
+  /*
+   * Google có thể percent-encode:
+   *
+   * %2B = +
+   * %2F = /
+   * %3D = =
+   */
+  try {
+
+    encoded =
+      decodeURIComponent(
+        encoded
+      );
+
+  } catch {
+    // giữ nguyên nếu decodeURIComponent lỗi
+  }
+
+
+  /*
+   * Một số browser biến dấu + thành space.
+   */
+  encoded =
+    encoded.replace(
+      / /g,
+      '+'
     );
 
+
+  /*
+   * Hỗ trợ cả Base64URL nếu gặp.
+   */
+  encoded =
+    encoded
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+
+  /*
+   * Bổ sung padding Base64.
+   */
+  while (
+    encoded.length % 4
+  ) {
+
+    encoded += '=';
+
+  }
+
+
+  let binary;
+
+  try {
+
+    binary =
+      atob(encoded);
+
+  } catch (error) {
+
+    console.error(
+      'Migration base64:',
+      encoded,
+      error
+    );
+
+    throw new Error(
+      'Không giải mã được Base64 của Migration QR.'
+    );
   }
 
 
   const bytes =
-    base64UrlToBytes(
-      encoded
+    Uint8Array.from(
+
+      binary,
+
+      char =>
+        char.charCodeAt(0)
+
     );
 
 
   return parseMigrationBytes(
     bytes
   );
-
 }
 
 
-function parseMigrationBytes(
-  bytes
-) {
+/* =========================================================
+   MIGRATION PAYLOAD PROTOBUF
+========================================================= */
+
+function parseMigrationBytes(bytes) {
 
   let offset = 0;
 
-
-  const output =
-    [];
+  const accounts = [];
 
 
   function readVarint() {
@@ -2271,32 +2341,105 @@ function parseMigrationBytes(
         bytes[offset++];
 
 
-      result |=
-
+      result +=
         (
-          byte &
-          0x7f
-        ) << shift;
+          byte & 0x7f
+        ) *
+        Math.pow(
+          2,
+          shift
+        );
 
 
       if (
         !(byte & 0x80)
       ) {
-
-        break;
-
+        return result;
       }
 
 
       shift += 7;
 
+
+      if (
+        shift > 56
+      ) {
+
+        throw new Error(
+          'Protobuf varint không hợp lệ.'
+        );
+      }
+
     }
 
 
-    return (
-      result >>> 0
+    throw new Error(
+      'Payload protobuf bị thiếu dữ liệu.'
     );
+  }
 
+
+  function skipField(wireType) {
+
+    /*
+     * VARINT
+     */
+    if (
+      wireType === 0
+    ) {
+
+      readVarint();
+
+      return;
+    }
+
+
+    /*
+     * 64-bit
+     */
+    if (
+      wireType === 1
+    ) {
+
+      offset += 8;
+
+      return;
+    }
+
+
+    /*
+     * LENGTH DELIMITED
+     */
+    if (
+      wireType === 2
+    ) {
+
+      const length =
+        readVarint();
+
+      offset +=
+        length;
+
+      return;
+    }
+
+
+    /*
+     * 32-bit
+     */
+    if (
+      wireType === 5
+    ) {
+
+      offset += 4;
+
+      return;
+    }
+
+
+    throw new Error(
+      `Wire type protobuf không hỗ trợ: ${wireType}`
+    );
   }
 
 
@@ -2310,34 +2453,55 @@ function parseMigrationBytes(
 
 
     const field =
-      tag >>> 3;
+      Math.floor(
+        tag / 8
+      );
 
 
     const wire =
-      tag & 7;
+      tag % 8;
 
 
+    /*
+     * MigrationPayload:
+     *
+     * field 1 =
+     * repeated OtpParameters
+     */
     if (
-      field === 1
+      field === 1 &&
+      wire === 2
     ) {
 
       const length =
         readVarint();
 
 
+      const end =
+        offset +
+        length;
+
+
+      if (
+        end >
+        bytes.length
+      ) {
+
+        throw new Error(
+          'OtpParameters vượt quá kích thước payload.'
+        );
+      }
+
+
       const sub =
-        bytes.subarray(
-
+        bytes.slice(
           offset,
-
-          offset +
-          length
-
+          end
         );
 
 
-      offset +=
-        length;
+      offset =
+        end;
 
 
       const account =
@@ -2348,51 +2512,43 @@ function parseMigrationBytes(
 
       if (account) {
 
-        output.push(
+        accounts.push(
           account
         );
 
       }
 
-    } else if (
-      wire === 0
-    ) {
 
-      readVarint();
-
-    } else if (
-      wire === 2
-    ) {
-
-      const length =
-        readVarint();
-
-
-      offset +=
-        length;
-
-    } else {
-
-      break;
-
+      continue;
     }
+
+
+    /*
+     * Các field còn lại:
+     *
+     * version
+     * batch_size
+     * batch_index
+     * batch_id
+     *
+     * chỉ cần skip.
+     */
+    skipField(
+      wire
+    );
 
   }
 
 
-  return output;
-
+  return accounts;
 }
 
 
 /* =========================================================
-   MIGRATION ACCOUNT PARSER
+   OTP PARAMETERS
 ========================================================= */
 
-
-function parseOtpParameters(
-  bytes
-) {
+function parseOtpParameters(bytes) {
 
   let offset = 0;
 
@@ -2417,6 +2573,14 @@ function parseOtpParameters(
     1;
 
 
+  let type =
+    2;
+
+
+  let counter =
+    0;
+
+
   function readVarint() {
 
     let result = 0;
@@ -2433,64 +2597,138 @@ function parseOtpParameters(
         bytes[offset++];
 
 
-      result |=
-
+      result +=
         (
-          byte &
-          0x7f
-        ) << shift;
+          byte & 0x7f
+        ) *
+        Math.pow(
+          2,
+          shift
+        );
 
 
       if (
         !(byte & 0x80)
       ) {
 
-        break;
+        return result;
 
       }
 
 
       shift += 7;
 
+
+      if (
+        shift > 56
+      ) {
+
+        throw new Error(
+          'OtpParameters varint không hợp lệ.'
+        );
+      }
+
     }
 
 
-    return (
-      result >>> 0
+    throw new Error(
+      'OtpParameters bị thiếu dữ liệu.'
     );
-
   }
 
 
-  function readString() {
+  function readBytes() {
 
     const length =
       readVarint();
 
 
-    const value =
-
-      new TextDecoder()
-        .decode(
-
-          bytes.subarray(
-
-            offset,
-
-            offset +
-            length
-
-          )
-
-        );
-
-
-    offset +=
+    const end =
+      offset +
       length;
 
 
-    return value;
+    if (
+      end >
+      bytes.length
+    ) {
 
+      throw new Error(
+        'Length-delimited field không hợp lệ.'
+      );
+    }
+
+
+    const result =
+      bytes.slice(
+        offset,
+        end
+      );
+
+
+    offset =
+      end;
+
+
+    return result;
+  }
+
+
+  function readString() {
+
+    return new TextDecoder()
+      .decode(
+        readBytes()
+      );
+
+  }
+
+
+  function skipField(wireType) {
+
+    if (
+      wireType === 0
+    ) {
+
+      readVarint();
+
+      return;
+    }
+
+
+    if (
+      wireType === 1
+    ) {
+
+      offset += 8;
+
+      return;
+    }
+
+
+    if (
+      wireType === 2
+    ) {
+
+      readBytes();
+
+      return;
+    }
+
+
+    if (
+      wireType === 5
+    ) {
+
+      offset += 4;
+
+      return;
+    }
+
+
+    throw new Error(
+      `OtpParameters wire type không hỗ trợ: ${wireType}`
+    );
   }
 
 
@@ -2504,90 +2742,122 @@ function parseOtpParameters(
 
 
     const field =
-      tag >>> 3;
+      Math.floor(
+        tag / 8
+      );
 
 
     const wire =
-      tag & 7;
+      tag % 8;
 
 
-    if (
-      field === 1
+    switch (
+      field
     ) {
 
-      const length =
-        readVarint();
+      /*
+       * bytes secret = 1
+       */
+      case 1:
+
+        if (
+          wire !== 2
+        ) {
+
+          throw new Error(
+            'Secret protobuf không hợp lệ.'
+          );
+
+        }
 
 
-      secretBytes =
-        bytes.subarray(
+        secretBytes =
+          readBytes();
 
-          offset,
+        break;
 
-          offset +
-          length
 
+      /*
+       * string name = 2
+       */
+      case 2:
+
+        name =
+          readString();
+
+        break;
+
+
+      /*
+       * string issuer = 3
+       */
+      case 3:
+
+        issuer =
+          readString();
+
+        break;
+
+
+      /*
+       * Algorithm algorithm = 4
+       */
+      case 4:
+
+        algorithm =
+          readVarint();
+
+        break;
+
+
+      /*
+       * DigitCount digits = 5
+       */
+      case 5:
+
+        digits =
+          readVarint();
+
+        break;
+
+
+      /*
+       * OtpType type = 6
+       */
+      case 6:
+
+        type =
+          readVarint();
+
+        break;
+
+
+      /*
+       * int64 counter = 7
+       */
+      case 7:
+
+        counter =
+          readVarint();
+
+        break;
+
+
+      default:
+
+        skipField(
+          wire
         );
-
-
-      offset +=
-        length;
-
-    } else if (
-      field === 2
-    ) {
-
-      name =
-        readString();
-
-    } else if (
-      field === 3
-    ) {
-
-      issuer =
-        readString();
-
-    } else if (
-      field === 4
-    ) {
-
-      algorithm =
-        readVarint();
-
-    } else if (
-      field === 5
-    ) {
-
-      digits =
-        readVarint();
-
-    } else if (
-      wire === 0
-    ) {
-
-      readVarint();
-
-    } else if (
-      wire === 2
-    ) {
-
-      const length =
-        readVarint();
-
-
-      offset +=
-        length;
-
-    } else {
-
-      break;
 
     }
 
   }
 
 
-  if (!secretBytes) {
+  if (
+    !secretBytes ||
+    !secretBytes.length
+  ) {
 
     return null;
 
@@ -2596,6 +2866,9 @@ function parseOtpParameters(
 
   const algorithmMap = {
 
+    0:
+      'SHA1',
+
     1:
       'SHA1',
 
@@ -2603,7 +2876,24 @@ function parseOtpParameters(
       'SHA256',
 
     3:
-      'SHA512'
+      'SHA512',
+
+    4:
+      'MD5'
+
+  };
+
+
+  const digitMap = {
+
+    0:
+      6,
+
+    1:
+      6,
+
+    2:
+      8
 
   };
 
@@ -2623,35 +2913,33 @@ function parseOtpParameters(
       ),
 
     algorithm:
-
       algorithmMap[
         algorithm
       ] ||
-
       'SHA1',
 
     digits:
-
-      digits === 2
-        ? 8
-        : 6,
+      digitMap[
+        digits
+      ] ||
+      6,
 
     period:
-      30
+      30,
+
+    type,
+
+    counter
 
   };
-
 }
 
 
 /* =========================================================
-   MIGRATION UI
+   DECODE MIGRATION
 ========================================================= */
 
-
-function decodeMigration(
-  uri
-) {
+function decodeMigration(uri) {
 
   const result =
     parseMigrationQR(
@@ -2664,10 +2952,75 @@ function decodeMigration(
   ) {
 
     throw new Error(
-      'Không tìm thấy tài khoản trong Migration QR.'
+      'Migration QR hợp lệ nhưng không tìm thấy tài khoản.'
+    );
+  }
+
+
+  /*
+   * Hiện app chỉ tạo OTP cho TOTP.
+   *
+   * Google enum:
+   * 1 = HOTP
+   * 2 = TOTP
+   *
+   * Nếu type = 0 thì vẫn giữ để tương thích
+   * với payload cũ.
+   */
+  const supported =
+    result.filter(
+      account =>
+        account.type === 0 ||
+        account.type === 2
     );
 
+
+  const unsupported =
+    result.length -
+    supported.length;
+
+
+  accounts = [
+    ...accounts,
+    ...supported
+  ];
+
+
+  if (
+    $('faMigText')
+  ) {
+
+    $('faMigText').value =
+      uri;
+
   }
+
+
+  renderMigrationAccounts();
+
+
+  startAccountOtpTimer();
+
+
+  let message =
+    `✓ Đã giải mã ${supported.length} tài khoản.`;
+
+
+  if (
+    unsupported > 0
+  ) {
+
+    message +=
+      ` Bỏ qua ${unsupported} HOTP.`;
+
+  }
+
+
+  showStatus(
+    message,
+    'success'
+  );
+}
 
 
   accounts = [
