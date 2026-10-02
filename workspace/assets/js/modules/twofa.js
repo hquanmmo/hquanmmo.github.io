@@ -1,15 +1,7 @@
 import { esc, toast, copyText } from '../utils.js';
 
-const host = () =>
-  document.getElementById('module-twofa');
-
-const $ = id =>
-  document.getElementById(id);
-
-
-/* =========================================================
-   STATE
-========================================================= */
+const host = () => document.getElementById('module-twofa');
+const $ = id => document.getElementById(id);
 
 let current = {
   secret: '',
@@ -17,15 +9,24 @@ let current = {
   digits: 6,
   period: 30,
   issuer: '',
-  account: ''
+  account: '',
+  type: 2,
+  counter: 0
 };
 
 let accounts = [];
-
 let otpTimer = null;
 let accountTimer = null;
 let qrCanvas = null;
 let pasteBound = false;
+
+// batchId -> {
+//   batchId,
+//   batchSize,
+//   version,
+//   pages: Map(index -> payload)
+// }
+const migrationBatches = new Map();
 
 
 /* =========================================================
@@ -52,8 +53,7 @@ function bytesToBase32(buffer) {
 
   let bits = 0;
   let value = 0;
-  let output = '';
-
+  let out = '';
 
   for (const byte of buffer) {
 
@@ -63,10 +63,9 @@ function bytesToBase32(buffer) {
 
     bits += 8;
 
-
     while (bits >= 5) {
 
-      output +=
+      out +=
         alphabet[
           (
             value >>>
@@ -78,10 +77,9 @@ function bytesToBase32(buffer) {
     }
   }
 
-
   if (bits > 0) {
 
-    output +=
+    out +=
       alphabet[
         (
           value <<
@@ -90,8 +88,232 @@ function bytesToBase32(buffer) {
       ];
   }
 
+  return out;
+}
 
-  return output;
+
+function base32ToBytes(secret) {
+
+  const alphabet =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+  let bits = '';
+
+  const bytes = [];
+
+  for (
+    const ch
+    of normalizeBase32(secret)
+  ) {
+
+    const idx =
+      alphabet.indexOf(ch);
+
+    if (idx < 0) {
+
+      throw new Error(
+        'Secret Base32 không hợp lệ.'
+      );
+    }
+
+    bits +=
+      idx
+        .toString(2)
+        .padStart(
+          5,
+          '0'
+        );
+  }
+
+  for (
+    let i = 0;
+    i + 8 <= bits.length;
+    i += 8
+  ) {
+
+    bytes.push(
+      parseInt(
+        bits.slice(
+          i,
+          i + 8
+        ),
+        2
+      )
+    );
+  }
+
+  return new Uint8Array(
+    bytes
+  );
+}
+
+
+function accountKey(acc) {
+
+  return [
+
+    normalizeBase32(
+      acc.secret
+    ),
+
+    acc.name ||
+    acc.account ||
+    '',
+
+    acc.issuer ||
+    '',
+
+    Number(
+      acc.type ?? 2
+    ),
+
+    String(
+      acc.counter ?? 0
+    )
+
+  ].join('|');
+}
+
+
+function mergeAccounts(list) {
+
+  const known =
+    new Set(
+      accounts.map(
+        accountKey
+      )
+    );
+
+  let added = 0;
+
+  for (
+    const acc
+    of list
+  ) {
+
+    const key =
+      accountKey(acc);
+
+    if (
+      known.has(key)
+    ) {
+
+      continue;
+    }
+
+    known.add(key);
+
+    accounts.push(acc);
+
+    added++;
+  }
+
+  return added;
+}
+
+
+function splitNameIssuer(
+  name,
+  issuer
+) {
+
+  let finalName =
+    String(
+      name || ''
+    ).trim();
+
+  let finalIssuer =
+    String(
+      issuer || ''
+    ).trim();
+
+
+  /*
+   * Google Authenticator đôi khi:
+   *
+   * issuer = ""
+   * name = "Microsoft:user@email.com"
+   */
+  if (!finalIssuer) {
+
+    const pos =
+      finalName.indexOf(':');
+
+    if (pos > 0) {
+
+      finalIssuer =
+        finalName
+          .slice(
+            0,
+            pos
+          )
+          .trim();
+
+      finalName =
+        finalName
+          .slice(
+            pos + 1
+          )
+          .trim();
+    }
+  }
+
+  return {
+
+    account:
+      finalName,
+
+    issuer:
+      finalIssuer
+  };
+}
+
+
+function algorithmLabel(value) {
+
+  return ({
+    0: 'SHA1',
+    1: 'SHA1',
+    2: 'SHA256',
+    3: 'SHA512',
+    4: 'MD5'
+  })[
+    Number(value)
+  ] || 'SHA1';
+}
+
+
+function digitsValue(value) {
+
+  return (
+    Number(value) === 2
+      ? 8
+      : 6
+  );
+}
+
+
+function typeLabel(value) {
+
+  return (
+    Number(value) === 1
+      ? 'HOTP'
+      : 'TOTP'
+  );
+}
+
+
+function isTwoFAActive() {
+
+  const el =
+    host();
+
+  return Boolean(
+    el &&
+    el.classList.contains(
+      'active'
+    )
+  );
 }
 
 
@@ -105,16 +327,14 @@ function showStatus(
   type = 'info'
 ) {
 
-  const element =
+  const el =
     $(id);
 
-
-  if (!element) {
+  if (!el) {
     return;
   }
 
-
-  const classMap = {
+  const classes = {
 
     success:
       'alert-success',
@@ -127,19 +347,18 @@ function showStatus(
 
     info:
       'alert-info'
-
   };
 
+  el.className =
+    `alert ${
+      classes[type] ||
+      classes.info
+    } py-2 px-3 mb-3`;
 
-  element.className =
-    `alert ${classMap[type] || classMap.info} py-2 px-3 mb-3`;
-
-
-  element.textContent =
+  el.textContent =
     text;
 
-
-  element.classList.remove(
+  el.classList.remove(
     'd-none'
   );
 }
@@ -147,37 +366,33 @@ function showStatus(
 
 function hideStatus(id) {
 
-  const element =
+  const el =
     $(id);
 
-
-  if (!element) {
+  if (!el) {
     return;
   }
 
-
-  element.className =
+  el.className =
     'd-none';
 
-
-  element.textContent =
+  el.textContent =
     '';
 }
 
 
 /* =========================================================
-   OTP AUTH
-   Không dùng OTPAuth.URI.parse()
+   NORMAL OTPAUTH
 ========================================================= */
 
 function parseOTPAuth(value) {
 
-  value =
-    String(value || '')
-      .trim();
+  const input =
+    String(
+      value || ''
+    ).trim();
 
-
-  if (!value) {
+  if (!input) {
 
     throw new Error(
       'Chưa có dữ liệu.'
@@ -186,10 +401,10 @@ function parseOTPAuth(value) {
 
 
   /*
-   * Secret Base32 thông thường
+   * Secret thuần
    */
   if (
-    !value
+    !input
       .toLowerCase()
       .startsWith(
         'otpauth://'
@@ -198,9 +413,8 @@ function parseOTPAuth(value) {
 
     const secret =
       normalizeBase32(
-        value
+        input
       );
-
 
     if (
       !isBase32(secret)
@@ -210,7 +424,6 @@ function parseOTPAuth(value) {
         'Secret không phải Base32 hợp lệ.'
       );
     }
-
 
     current = {
 
@@ -229,9 +442,14 @@ function parseOTPAuth(value) {
         '',
 
       account:
-        ''
-    };
+        '',
 
+      type:
+        2,
+
+      counter:
+        0
+    };
 
     return current;
   }
@@ -242,11 +460,10 @@ function parseOTPAuth(value) {
    */
   let url;
 
-
   try {
 
     url =
-      new URL(value);
+      new URL(input);
 
   } catch {
 
@@ -256,19 +473,21 @@ function parseOTPAuth(value) {
   }
 
 
-  const type =
+  const otpType =
     String(
-      url.hostname || ''
+      url.hostname ||
+      ''
     )
       .toLowerCase();
 
 
   if (
-    type !== 'totp'
+    otpType !== 'totp' &&
+    otpType !== 'hotp'
   ) {
 
     throw new Error(
-      'Chỉ hỗ trợ TOTP.'
+      'Chỉ hỗ trợ TOTP/HOTP.'
     );
   }
 
@@ -326,12 +545,12 @@ function parseOTPAuth(value) {
     label;
 
 
-  const colonIndex =
+  const colon =
     label.indexOf(':');
 
 
   if (
-    colonIndex >= 0
+    colon >= 0
   ) {
 
     if (!issuer) {
@@ -340,16 +559,15 @@ function parseOTPAuth(value) {
         label
           .slice(
             0,
-            colonIndex
+            colon
           )
           .trim();
     }
 
-
     account =
       label
         .slice(
-          colonIndex + 1
+          colon + 1
         )
         .trim();
   }
@@ -428,6 +646,30 @@ function parseOTPAuth(value) {
   }
 
 
+  let counter =
+    Number(
+
+      url
+        .searchParams
+        .get('counter') ||
+
+      0
+
+    );
+
+
+  if (
+    !Number.isSafeInteger(
+      counter
+    ) ||
+    counter < 0
+  ) {
+
+    counter =
+      0;
+  }
+
+
   current = {
 
     secret,
@@ -440,7 +682,14 @@ function parseOTPAuth(value) {
 
     issuer,
 
-    account
+    account,
+
+    type:
+      otpType === 'hotp'
+        ? 1
+        : 2,
+
+    counter
   };
 
 
@@ -449,34 +698,41 @@ function parseOTPAuth(value) {
 
 
 /* =========================================================
-   CREATE OTPAUTH URI
+   CREATE OTPAUTH
 ========================================================= */
 
-function makeOtpAuth(account) {
+function makeOtpAuth(acc) {
 
   const issuer =
-    account.issuer ||
-    '2FA';
+    String(
+      acc.issuer ||
+      '2FA'
+    );
 
-
-  const accountName =
-    account.account ||
-    '2FA';
-
+  const account =
+    String(
+      acc.account ||
+      '2FA'
+    );
 
   const label =
     encodeURIComponent(
-      `${issuer}:${accountName}`
+      `${issuer}:${account}`
     );
 
+  const kind =
+    Number(acc.type) === 1
+      ? 'hotp'
+      : 'totp';
 
-  return (
 
-    `otpauth://totp/${label}` +
+  let uri =
+
+    `otpauth://${kind}/${label}` +
 
     `?secret=${
       encodeURIComponent(
-        account.secret
+        acc.secret
       )
     }` +
 
@@ -488,196 +744,131 @@ function makeOtpAuth(account) {
 
     `&algorithm=${
       encodeURIComponent(
-        account.algorithm ||
+        acc.algorithm ||
         'SHA1'
       )
     }` +
 
     `&digits=${
       encodeURIComponent(
-        account.digits ||
+        acc.digits ||
         6
       )
-    }` +
+    }`;
 
-    `&period=${
-      encodeURIComponent(
-        account.period ||
-        30
-      )
-    }`
-  );
-}
-
-
-/* =========================================================
-   BASE32 -> BYTES
-========================================================= */
-
-function base32ToBytes(secret) {
-
-  const alphabet =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
-
-  let bits =
-    '';
-
-
-  const bytes =
-    [];
-
-
-  for (
-    const character
-    of normalizeBase32(secret)
-  ) {
-
-    const index =
-      alphabet.indexOf(
-        character
-      );
-
-
-    if (
-      index < 0
-    ) {
-
-      throw new Error(
-        'Secret Base32 không hợp lệ.'
-      );
-    }
-
-
-    bits +=
-      index
-        .toString(2)
-        .padStart(
-          5,
-          '0'
-        );
-  }
-
-
-  for (
-
-    let i = 0;
-
-    i + 8 <=
-    bits.length;
-
-    i += 8
-
-  ) {
-
-    bytes.push(
-
-      parseInt(
-
-        bits.slice(
-          i,
-          i + 8
-        ),
-
-        2
-
-      )
-
-    );
-  }
-
-
-  return new Uint8Array(
-    bytes
-  );
-}
-
-
-/* =========================================================
-   TOTP
-========================================================= */
-
-async function generateTOTP(
-  account = current
-) {
 
   if (
-    !account.secret
+    kind === 'hotp'
   ) {
 
-    throw new Error(
-      'Không có Secret.'
-    );
+    uri +=
+      `&counter=${
+        encodeURIComponent(
+          acc.counter ||
+          0
+        )
+      }`;
+
+  } else {
+
+    uri +=
+      `&period=${
+        encodeURIComponent(
+          acc.period ||
+          30
+        )
+      }`;
   }
 
 
-  const secretBytes =
-    base32ToBytes(
-      account.secret
-    );
+  return uri;
+}
 
 
-  const period =
-    Number(
-      account.period
-    ) || 30;
+/* =========================================================
+   OTP CORE
+========================================================= */
+
+function counterToBytes(counter) {
+
+  let n;
+
+  try {
+
+    n =
+      BigInt(counter);
+
+  } catch {
+
+    n =
+      0n;
+  }
 
 
-  const counter =
-    Math.floor(
-
-      Date.now() /
-      1000 /
-      period
-
-    );
-
-
-  const counterBytes =
+  const out =
     new Uint8Array(8);
 
 
-  let counterValue =
-    counter;
-
-
   for (
-
     let i = 7;
-
     i >= 0;
-
     i--
-
   ) {
 
-    counterBytes[i] =
-      counterValue & 255;
-
-
-    counterValue =
-      Math.floor(
-        counterValue /
-        256
+    out[i] =
+      Number(
+        n & 255n
       );
+
+    n >>= 8n;
   }
 
 
-  const algorithm =
+  return out;
+}
+
+
+async function hmacOtp(
+  acc,
+  counter
+) {
+
+  const keyBytes =
+    base32ToBytes(
+      acc.secret
+    );
+
+
+  const alg =
     String(
-      account.algorithm ||
+      acc.algorithm ||
       'SHA1'
     )
       .toUpperCase();
 
 
-  const hashName =
+  /*
+   * Web Crypto không hỗ trợ MD5.
+   * Không được tự chuyển MD5 -> SHA1
+   * vì sẽ tạo mã sai.
+   */
+  if (
+    alg === 'MD5'
+  ) {
 
-    algorithm === 'SHA512'
+    throw new Error(
+      'MD5 không được Web Crypto hỗ trợ.'
+    );
+  }
+
+
+  const hash =
+
+    alg === 'SHA512'
 
       ? 'SHA-512'
 
-      : algorithm === 'SHA256'
+      : alg === 'SHA256'
 
         ? 'SHA-256'
 
@@ -689,16 +880,13 @@ async function generateTOTP(
 
       'raw',
 
-      secretBytes,
+      keyBytes,
 
       {
-
         name:
           'HMAC',
 
-        hash:
-          hashName
-
+        hash
       },
 
       false,
@@ -706,10 +894,11 @@ async function generateTOTP(
       [
         'sign'
       ]
+
     );
 
 
-  const signed =
+  const signature =
     new Uint8Array(
 
       await crypto.subtle.sign(
@@ -718,7 +907,9 @@ async function generateTOTP(
 
         key,
 
-        counterBytes
+        counterToBytes(
+          counter
+        )
 
       )
 
@@ -726,8 +917,8 @@ async function generateTOTP(
 
 
   const offset =
-    signed[
-      signed.length - 1
+    signature[
+      signature.length - 1
     ] & 15;
 
 
@@ -735,14 +926,14 @@ async function generateTOTP(
 
     (
       (
-        signed[offset] &
+        signature[offset] &
         127
       ) << 24
     ) |
 
     (
       (
-        signed[
+        signature[
           offset + 1
         ] &
         255
@@ -751,7 +942,7 @@ async function generateTOTP(
 
     (
       (
-        signed[
+        signature[
           offset + 2
         ] &
         255
@@ -759,7 +950,7 @@ async function generateTOTP(
     ) |
 
     (
-      signed[
+      signature[
         offset + 3
       ] &
       255
@@ -770,8 +961,10 @@ async function generateTOTP(
 
   const digits =
     Number(
-      account.digits
-    ) || 6;
+      acc.digits
+    ) === 8
+      ? 8
+      : 6;
 
 
   return String(
@@ -790,8 +983,72 @@ async function generateTOTP(
 }
 
 
+async function generateOTP(
+  acc = current
+) {
+
+  if (
+    !acc.secret
+  ) {
+
+    throw new Error(
+      'Không có Secret.'
+    );
+  }
+
+
+  /*
+   * HOTP
+   */
+  if (
+    Number(acc.type) === 1
+  ) {
+
+    return hmacOtp(
+
+      acc,
+
+      BigInt(
+        acc.counter ||
+        0
+      )
+
+    );
+  }
+
+
+  /*
+   * TOTP
+   */
+  const period =
+    Number(
+      acc.period
+    ) || 30;
+
+
+  const counter =
+    BigInt(
+
+      Math.floor(
+
+        Date.now() /
+        1000 /
+        period
+
+      )
+
+    );
+
+
+  return hmacOtp(
+    acc,
+    counter
+  );
+}
+
+
 /* =========================================================
-   OTP UI
+   NORMAL OTP UI
 ========================================================= */
 
 function updateInfo() {
@@ -821,7 +1078,26 @@ function updateInfo() {
   $('faAlgo')
     .textContent =
 
-    `${current.algorithm} · ${current.digits} digits · ${current.period}s`;
+    `${
+      typeLabel(
+        current.type
+      )
+    } · ${
+      current.algorithm
+    } · ${
+      current.digits
+    } digits${
+      Number(current.type) === 1
+
+        ? ` · counter ${
+            current.counter ||
+            0
+          }`
+
+        : ` · ${
+            current.period
+          }s`
+    }`;
 }
 
 
@@ -841,11 +1117,41 @@ async function updateMainOTP() {
     $('faCode')
       .textContent =
 
-      await generateTOTP(
+      await generateOTP(
         current
       );
 
 
+    /*
+     * HOTP
+     */
+    if (
+      Number(
+        current.type
+      ) === 1
+    ) {
+
+      $('faTimer')
+        .textContent =
+
+        `HOTP · counter ${
+          current.counter ||
+          0
+        }`;
+
+
+      $('faProgress')
+        .style.width =
+        '100%';
+
+
+      return;
+    }
+
+
+    /*
+     * TOTP
+     */
     const period =
       Number(
         current.period
@@ -905,284 +1211,1553 @@ function startOTP() {
   updateMainOTP();
 
 
-  otpTimer =
-    setInterval(
+  if (
+    Number(
+      current.type
+    ) !== 1
+  ) {
 
-      updateMainOTP,
+    otpTimer =
+      setInterval(
 
-      1000
+        updateMainOTP,
 
-    );
+        1000
+
+      );
+  }
 }
 
 
 /* =========================================================
-   QR IMAGE READER
-   Giữ pipeline giống code gốc
+   QR DECODER
 ========================================================= */
 
-function readQR(file) {
+/*
+ * Chrome/Edge có BarcodeDetector
+ * thường đọc QR Migration dày tốt hơn jsQR.
+ */
+async function nativeBarcodeDecode(file) {
 
-  if (!file) {
-    return;
+  if (
+    !(
+      'BarcodeDetector'
+      in window
+    ) ||
+    !(
+      'createImageBitmap'
+      in window
+    )
+  ) {
+
+    return '';
   }
 
+
+  try {
+
+    const formats =
+      await BarcodeDetector
+        .getSupportedFormats?.();
+
+
+    if (
+      formats &&
+      !formats.includes(
+        'qr_code'
+      )
+    ) {
+
+      return '';
+    }
+
+
+    const bitmap =
+      await createImageBitmap(
+        file
+      );
+
+
+    const detector =
+      new BarcodeDetector({
+
+        formats:
+          [
+            'qr_code'
+          ]
+
+      });
+
+
+    const found =
+      await detector.detect(
+        bitmap
+      );
+
+
+    bitmap.close?.();
+
+
+    return (
+      found?.[0]
+        ?.rawValue ||
+      ''
+    );
+
+  } catch {
+
+    return '';
+  }
+}
+
+
+function fileReaderImage(file) {
+
+  return new Promise(
+
+    (
+      resolve,
+      reject
+    ) => {
+
+      const reader =
+        new FileReader();
+
+
+      reader.onerror =
+        () => {
+
+          reject(
+            new Error(
+              'Không đọc được ảnh.'
+            )
+          );
+        };
+
+
+      reader.onload =
+        event => {
+
+          const image =
+            new Image();
+
+
+          image.onerror =
+            () => {
+
+              reject(
+                new Error(
+                  'Ảnh không hợp lệ.'
+                )
+              );
+            };
+
+
+          image.onload =
+            () => {
+
+              resolve(
+                image
+              );
+            };
+
+
+          image.src =
+            event.target.result;
+        };
+
+
+      reader.readAsDataURL(
+        file
+      );
+    }
+
+  );
+}
+
+
+/*
+ * Fallback bằng jsQR.
+ * Thử nhiều scale để tăng khả năng đọc
+ * QR Export của Google Authenticator.
+ */
+function jsQrDecodeFromImage(image) {
 
   if (
     typeof jsQR ===
     'undefined'
   ) {
 
-    showStatus(
-      'faStatus',
-      'jsQR chưa được tải.',
-      'danger'
+    throw new Error(
+      'jsQR chưa được tải.'
     );
-
-    return;
   }
 
 
-  const reader =
-    new FileReader();
+  const max =
+    4096;
 
 
-  reader.onerror =
-    () => {
+  let width =
+    image.naturalWidth;
 
-      showStatus(
 
-        'faStatus',
+  let height =
+    image.naturalHeight;
 
-        'Không đọc được ảnh.',
 
-        'danger'
+  if (
+    Math.max(
+      width,
+      height
+    ) >
+    max
+  ) {
 
+    const scale =
+
+      max /
+
+      Math.max(
+        width,
+        height
       );
-    };
 
 
-  reader.onload =
-    event => {
-
-      const image =
-        new Image();
-
-
-      image.onerror =
-        () => {
-
-          showStatus(
-
-            'faStatus',
-
-            'Ảnh không hợp lệ.',
-
-            'danger'
-
-          );
-        };
+    width =
+      Math.round(
+        width *
+        scale
+      );
 
 
-      image.onload =
-        () => {
-
-          const canvas =
-            document.createElement(
-              'canvas'
-            );
-
-
-          const max =
-            3200;
+    height =
+      Math.round(
+        height *
+        scale
+      );
+  }
 
 
-          let width =
-            image.naturalWidth;
+  const base =
+    document.createElement(
+      'canvas'
+    );
 
 
-          let height =
-            image.naturalHeight;
+  base.width =
+    width;
 
 
-          if (
-
-            Math.max(
-              width,
-              height
-            ) >
-            max
-
-          ) {
-
-            const scale =
-
-              max /
-
-              Math.max(
-                width,
-                height
-              );
+  base.height =
+    height;
 
 
-            width =
-              Math.round(
-                width *
-                scale
-              );
+  const ctx =
+    base.getContext(
+
+      '2d',
+
+      {
+        willReadFrequently:
+          true
+      }
+
+    );
 
 
-            height =
-              Math.round(
-                height *
-                scale
-              );
-          }
+  ctx.drawImage(
+
+    image,
+
+    0,
+    0,
+
+    width,
+    height
+
+  );
 
 
-          canvas.width =
-            width;
+  const attempts = [
+
+    {
+      canvas:
+        base,
+
+      w:
+        width,
+
+      h:
+        height
+    },
+
+    {
+      scale:
+        1.5
+    },
+
+    {
+      scale:
+        2
+    }
+
+  ];
 
 
-          canvas.height =
-            height;
+  for (
+    const attempt
+    of attempts
+  ) {
+
+    let canvas =
+      attempt.canvas;
 
 
-          const context =
-            canvas.getContext(
-
-              '2d',
-
-              {
-                willReadFrequently:
-                  true
-              }
-
-            );
+    let w =
+      attempt.w;
 
 
-          context.drawImage(
+    let h =
+      attempt.h;
 
-            image,
 
-            0,
-            0,
+    if (!canvas) {
 
+      const scale =
+        Math.min(
+
+          attempt.scale,
+
+          4096 /
+          Math.max(
             width,
             height
+          )
 
-          );
-
-
-          const imageData =
-            context.getImageData(
-
-              0,
-              0,
-
-              width,
-              height
-
-            );
+        );
 
 
-          const qr =
-            jsQR(
-
-              imageData.data,
-
-              width,
-
-              height,
-
-              {
-                inversionAttempts:
-                  'attemptBoth'
-              }
-
-            );
+      w =
+        Math.round(
+          width *
+          scale
+        );
 
 
-          if (!qr) {
-
-            showStatus(
-
-              'faStatus',
-
-              'Không tìm thấy QR trong ảnh.',
-
-              'danger'
-
-            );
+      h =
+        Math.round(
+          height *
+          scale
+        );
 
 
-            showStatus(
-
-              'faMigrationStatus',
-
-              'Không tìm thấy QR trong ảnh.',
-
-              'danger'
-
-            );
+      canvas =
+        document.createElement(
+          'canvas'
+        );
 
 
-            return;
+      canvas.width =
+        w;
+
+
+      canvas.height =
+        h;
+
+
+      const c =
+        canvas.getContext(
+
+          '2d',
+
+          {
+            willReadFrequently:
+              true
           }
 
-
-          try {
-
-            handleQRText(
-              qr.data
-            );
-
-          } catch (error) {
-
-            showStatus(
-
-              'faStatus',
-
-              error.message,
-
-              'danger'
-
-            );
+        );
 
 
-            showStatus(
-
-              'faMigrationStatus',
-
-              error.message,
-
-              'danger'
-
-            );
-          }
-        };
+      c.imageSmoothingEnabled =
+        false;
 
 
-      image.src =
-        event.target.result;
-    };
+      c.drawImage(
+
+        base,
+
+        0,
+        0,
+
+        w,
+        h
+
+      );
+    }
 
 
-  reader.readAsDataURL(
-    file
+    const c =
+      canvas.getContext(
+
+        '2d',
+
+        {
+          willReadFrequently:
+            true
+        }
+
+      );
+
+
+    const data =
+      c.getImageData(
+
+        0,
+        0,
+
+        w,
+        h
+
+      );
+
+
+    const qr =
+      jsQR(
+
+        data.data,
+
+        w,
+
+        h,
+
+        {
+          inversionAttempts:
+            'attemptBoth'
+        }
+
+      );
+
+
+    if (
+      qr?.data
+    ) {
+
+      return qr.data;
+    }
+  }
+
+
+  return '';
+}
+
+
+async function decodeQrFile(file) {
+
+  if (!file) {
+
+    throw new Error(
+      'Không có ảnh QR.'
+    );
+  }
+
+
+  /*
+   * 1. Native browser detector
+   */
+  const native =
+    await nativeBarcodeDecode(
+      file
+    );
+
+
+  if (native) {
+
+    return native.trim();
+  }
+
+
+  /*
+   * 2. jsQR fallback
+   */
+  const image =
+    await fileReaderImage(
+      file
+    );
+
+
+  const fallback =
+    jsQrDecodeFromImage(
+      image
+    );
+
+
+  if (!fallback) {
+
+    throw new Error(
+      'Không tìm thấy QR trong ảnh.'
+    );
+  }
+
+
+  return fallback.trim();
+}
+
+
+async function readQR(file) {
+
+  try {
+
+    showStatus(
+      'faStatus',
+      'Đang đọc QR...',
+      'info'
+    );
+
+
+    showStatus(
+      'faMigrationStatus',
+      'Đang đọc QR...',
+      'info'
+    );
+
+
+    const text =
+      await decodeQrFile(
+        file
+      );
+
+
+    handleQRText(
+      text
+    );
+
+  } catch (error) {
+
+    showStatus(
+
+      'faStatus',
+
+      error.message ||
+      'Không đọc được QR.',
+
+      'danger'
+
+    );
+
+
+    showStatus(
+
+      'faMigrationStatus',
+
+      error.message ||
+      'Không đọc được QR.',
+
+      'danger'
+
+    );
+  }
+}
+
+
+/* =========================================================
+   PROTOBUF READER
+========================================================= */
+
+class ProtoReader {
+
+  constructor(bytes) {
+
+    this.bytes =
+      bytes;
+
+    this.offset =
+      0;
+  }
+
+
+  eof() {
+
+    return (
+      this.offset >=
+      this.bytes.length
+    );
+  }
+
+
+  /*
+   * Dùng BigInt để tránh lỗi
+   * varint > 32 bit.
+   */
+  readVarintBig() {
+
+    let result =
+      0n;
+
+    let shift =
+      0n;
+
+
+    while (
+      !this.eof()
+    ) {
+
+      const byte =
+        BigInt(
+
+          this.bytes[
+            this.offset++
+          ]
+
+        );
+
+
+      result |=
+
+        (
+          byte &
+          0x7fn
+        ) << shift;
+
+
+      if (
+        (
+          byte &
+          0x80n
+        ) === 0n
+      ) {
+
+        return result;
+      }
+
+
+      shift +=
+        7n;
+
+
+      if (
+        shift > 70n
+      ) {
+
+        throw new Error(
+          'Varint protobuf không hợp lệ.'
+        );
+      }
+    }
+
+
+    throw new Error(
+      'Payload protobuf bị thiếu dữ liệu.'
+    );
+  }
+
+
+  readVarintNumber() {
+
+    const value =
+      this.readVarintBig();
+
+
+    if (
+      value >
+      BigInt(
+        Number.MAX_SAFE_INTEGER
+      )
+    ) {
+
+      throw new Error(
+        'Giá trị protobuf quá lớn.'
+      );
+    }
+
+
+    return Number(
+      value
+    );
+  }
+
+
+  readLengthDelimited() {
+
+    const length =
+      this.readVarintNumber();
+
+
+    const end =
+      this.offset +
+      length;
+
+
+    if (
+      end >
+      this.bytes.length
+    ) {
+
+      throw new Error(
+        'Field protobuf vượt quá payload.'
+      );
+    }
+
+
+    const out =
+      this.bytes.subarray(
+
+        this.offset,
+
+        end
+
+      );
+
+
+    this.offset =
+      end;
+
+
+    return out;
+  }
+
+
+  readString() {
+
+    return new TextDecoder()
+      .decode(
+        this.readLengthDelimited()
+      );
+  }
+
+
+  skip(wire) {
+
+    /*
+     * varint
+     */
+    if (
+      wire === 0
+    ) {
+
+      this.readVarintBig();
+
+      return;
+    }
+
+
+    /*
+     * 64-bit
+     */
+    if (
+      wire === 1
+    ) {
+
+      this.offset +=
+        8;
+
+      return;
+    }
+
+
+    /*
+     * length-delimited
+     */
+    if (
+      wire === 2
+    ) {
+
+      this.readLengthDelimited();
+
+      return;
+    }
+
+
+    /*
+     * 32-bit
+     */
+    if (
+      wire === 5
+    ) {
+
+      this.offset +=
+        4;
+
+      return;
+    }
+
+
+    throw new Error(
+
+      `Wire type protobuf không hỗ trợ: ${wire}`
+
+    );
+  }
+}
+
+
+/* =========================================================
+   GOOGLE AUTHENTICATOR MIGRATION
+========================================================= */
+
+/*
+ * Không dùng URLSearchParams cho data=
+ * để tránh trường hợp dấu + của Base64
+ * bị biến thành space.
+ */
+function migrationDataFromUri(uri) {
+
+  const text =
+    String(
+      uri || ''
+    ).trim();
+
+
+  const prefix =
+    'otpauth-migration://offline?';
+
+
+  if (
+    !text.startsWith(
+      prefix
+    )
+  ) {
+
+    throw new Error(
+      'Không phải Google Authenticator Migration QR.'
+    );
+  }
+
+
+  const query =
+    text.slice(
+      prefix.length
+    );
+
+
+  const match =
+    query.match(
+
+      /(?:^|&)data=([^&]*)/
+
+    );
+
+
+  if (
+    !match?.[1]
+  ) {
+
+    throw new Error(
+      'Migration QR không có data.'
+    );
+  }
+
+
+  let encoded =
+    match[1];
+
+
+  /*
+   * Percent encoded base64
+   */
+  try {
+
+    encoded =
+      decodeURIComponent(
+        encoded
+      );
+
+  } catch {
+    // giữ nguyên
+  }
+
+
+  /*
+   * Hỗ trợ:
+   * Base64
+   * Base64 URL safe
+   */
+  encoded =
+    encoded
+
+      .replace(
+        / /g,
+        '+'
+      )
+
+      .replace(
+        /-/g,
+        '+'
+      )
+
+      .replace(
+        /_/g,
+        '/'
+      );
+
+
+  /*
+   * Base64 padding
+   */
+  while (
+    encoded.length % 4
+  ) {
+
+    encoded +=
+      '=';
+  }
+
+
+  let binary;
+
+
+  try {
+
+    binary =
+      atob(
+        encoded
+      );
+
+  } catch {
+
+    throw new Error(
+      'Không giải mã được Base64 của Migration QR.'
+    );
+  }
+
+
+  return Uint8Array.from(
+
+    binary,
+
+    ch =>
+      ch.charCodeAt(0)
+
   );
 }
 
 
 /* =========================================================
-   HANDLE QR TEXT
+   OTP PARAMETERS
+========================================================= */
+
+function parseOtpParameters(bytes) {
+
+  const r =
+    new ProtoReader(
+      bytes
+    );
+
+
+  let secretBytes =
+    null;
+
+
+  let name =
+    '';
+
+
+  let issuer =
+    '';
+
+
+  let algorithm =
+    1;
+
+
+  let digits =
+    1;
+
+
+  let type =
+    2;
+
+
+  let counter =
+    0n;
+
+
+  while (
+    !r.eof()
+  ) {
+
+    const tag =
+      r.readVarintNumber();
+
+
+    const field =
+      Math.floor(
+        tag / 8
+      );
+
+
+    const wire =
+      tag & 7;
+
+
+    /*
+     * secret = field 1
+     */
+    if (
+      field === 1 &&
+      wire === 2
+    ) {
+
+      secretBytes =
+        r.readLengthDelimited();
+
+    }
+
+
+    /*
+     * name = field 2
+     */
+    else if (
+      field === 2 &&
+      wire === 2
+    ) {
+
+      name =
+        r.readString();
+
+    }
+
+
+    /*
+     * issuer = field 3
+     */
+    else if (
+      field === 3 &&
+      wire === 2
+    ) {
+
+      issuer =
+        r.readString();
+
+    }
+
+
+    /*
+     * algorithm = field 4
+     */
+    else if (
+      field === 4 &&
+      wire === 0
+    ) {
+
+      algorithm =
+        r.readVarintNumber();
+
+    }
+
+
+    /*
+     * digits = field 5
+     */
+    else if (
+      field === 5 &&
+      wire === 0
+    ) {
+
+      digits =
+        r.readVarintNumber();
+
+    }
+
+
+    /*
+     * type = field 6
+     */
+    else if (
+      field === 6 &&
+      wire === 0
+    ) {
+
+      type =
+        r.readVarintNumber();
+
+    }
+
+
+    /*
+     * counter = field 7
+     */
+    else if (
+      field === 7 &&
+      wire === 0
+    ) {
+
+      counter =
+        r.readVarintBig();
+
+    }
+
+
+    else {
+
+      r.skip(
+        wire
+      );
+    }
+  }
+
+
+  if (
+    !secretBytes?.length
+  ) {
+
+    return null;
+  }
+
+
+  const normalized =
+    splitNameIssuer(
+      name,
+      issuer
+    );
+
+
+  return {
+
+    name:
+      normalized.account,
+
+    account:
+      normalized.account,
+
+    issuer:
+      normalized.issuer,
+
+    secret:
+      bytesToBase32(
+        secretBytes
+      ),
+
+    algorithm:
+      algorithmLabel(
+        algorithm
+      ),
+
+    digits:
+      digitsValue(
+        digits
+      ),
+
+    type:
+      Number(type) === 1
+        ? 1
+        : 2,
+
+    /*
+     * giữ string để không mất
+     * precision của int64
+     */
+    counter:
+      counter.toString(),
+
+    period:
+      30
+  };
+}
+
+
+/* =========================================================
+   MIGRATION PAYLOAD
+========================================================= */
+
+function parseMigrationPayload(bytes) {
+
+  const r =
+    new ProtoReader(
+      bytes
+    );
+
+
+  const payload = {
+
+    accounts:
+      [],
+
+    version:
+      0,
+
+    batchSize:
+      1,
+
+    batchIndex:
+      0,
+
+    batchId:
+      '0'
+  };
+
+
+  while (
+    !r.eof()
+  ) {
+
+    const tag =
+      r.readVarintNumber();
+
+
+    const field =
+      Math.floor(
+        tag / 8
+      );
+
+
+    const wire =
+      tag & 7;
+
+
+    /*
+     * repeated OtpParameters = 1
+     */
+    if (
+      field === 1 &&
+      wire === 2
+    ) {
+
+      const acc =
+        parseOtpParameters(
+
+          r.readLengthDelimited()
+
+        );
+
+
+      if (acc) {
+
+        payload
+          .accounts
+          .push(acc);
+      }
+    }
+
+
+    /*
+     * version = 2
+     */
+    else if (
+      field === 2 &&
+      wire === 0
+    ) {
+
+      payload.version =
+        r.readVarintNumber();
+    }
+
+
+    /*
+     * batch_size = 3
+     */
+    else if (
+      field === 3 &&
+      wire === 0
+    ) {
+
+      payload.batchSize =
+        r.readVarintNumber();
+    }
+
+
+    /*
+     * batch_index = 4
+     */
+    else if (
+      field === 4 &&
+      wire === 0
+    ) {
+
+      payload.batchIndex =
+        r.readVarintNumber();
+    }
+
+
+    /*
+     * batch_id = 5
+     */
+    else if (
+      field === 5 &&
+      wire === 0
+    ) {
+
+      payload.batchId =
+        r
+          .readVarintBig()
+          .toString();
+    }
+
+
+    else {
+
+      r.skip(
+        wire
+      );
+    }
+  }
+
+
+  if (
+    !payload.batchSize ||
+    payload.batchSize < 1
+  ) {
+
+    payload.batchSize =
+      1;
+  }
+
+
+  if (
+    payload.batchIndex < 0
+  ) {
+
+    payload.batchIndex =
+      0;
+  }
+
+
+  return payload;
+}
+
+
+/* =========================================================
+   BATCH MANAGEMENT
+========================================================= */
+
+function batchProgressText(batch) {
+
+  const scanned =
+    [
+      ...batch
+        .pages
+        .keys()
+    ]
+      .sort(
+        (a, b) =>
+          a - b
+      );
+
+
+  const human =
+    scanned
+      .map(
+        index =>
+          index + 1
+      )
+      .join(', ');
+
+
+  const missing =
+    [];
+
+
+  for (
+    let i = 0;
+    i < batch.batchSize;
+    i++
+  ) {
+
+    if (
+      !batch
+        .pages
+        .has(i)
+    ) {
+
+      missing.push(
+        i + 1
+      );
+    }
+  }
+
+
+  if (
+    !missing.length
+  ) {
+
+    return (
+      `Batch hoàn tất ${
+        batch.batchSize
+      }/${
+        batch.batchSize
+      } QR.`
+    );
+  }
+
+
+  return (
+
+    `Batch ${
+      batch.pages.size
+    }/${
+      batch.batchSize
+    } QR · ` +
+
+    `đã nhận: ${
+      human || '-'
+    } · ` +
+
+    `còn thiếu: ${
+      missing.join(', ')
+    }`
+
+  );
+}
+
+
+function registerMigrationPayload(
+  payload
+) {
+
+  const batchKey =
+    `${
+      payload.batchId
+    }:${
+      payload.batchSize
+    }`;
+
+
+  let batch =
+    migrationBatches.get(
+      batchKey
+    );
+
+
+  if (!batch) {
+
+    batch = {
+
+      batchId:
+        payload.batchId,
+
+      batchSize:
+        payload.batchSize,
+
+      version:
+        payload.version,
+
+      pages:
+        new Map()
+    };
+
+
+    migrationBatches.set(
+      batchKey,
+      batch
+    );
+  }
+
+
+  const duplicatePage =
+    batch
+      .pages
+      .has(
+        payload.batchIndex
+      );
+
+
+  /*
+   * cùng QR index sẽ ghi đè
+   * chứ không tăng số trang.
+   */
+  batch.pages.set(
+
+    payload.batchIndex,
+
+    payload
+
+  );
+
+
+  /*
+   * Accounts được cộng dồn ngay
+   * khi quét từng QR.
+   */
+  const added =
+    mergeAccounts(
+      payload.accounts
+    );
+
+
+  return {
+
+    batch,
+
+    added,
+
+    duplicatePage,
+
+    complete:
+
+      batch.pages.size >=
+      batch.batchSize
+  };
+}
+
+
+/* =========================================================
+   DECODE MIGRATION
+========================================================= */
+
+function decodeMigration(uri) {
+
+  const bytes =
+    migrationDataFromUri(
+      uri
+    );
+
+
+  const payload =
+    parseMigrationPayload(
+      bytes
+    );
+
+
+  if (
+    !payload.accounts.length
+  ) {
+
+    throw new Error(
+      'Migration QR hợp lệ nhưng không có tài khoản.'
+    );
+  }
+
+
+  const result =
+    registerMigrationPayload(
+      payload
+    );
+
+
+  renderAccounts();
+
+  startAccountTimer();
+
+  renderBatchState();
+
+
+  return {
+
+    payload,
+
+    ...result
+  };
+}
+
+
+/* =========================================================
+   HANDLE QR CONTENT
 ========================================================= */
 
 function handleQRText(text) {
 
-  text =
-    String(text || '')
-      .trim();
+  const value =
+    String(
+      text || ''
+    ).trim();
+
+
+  if (!value) {
+
+    throw new Error(
+      'QR không có dữ liệu.'
+    );
+  }
 
 
   if (
@@ -1191,26 +2766,27 @@ function handleQRText(text) {
 
     $('faMigrationText')
       .value =
-      text;
+      value;
   }
 
 
-  /*
-   * GOOGLE AUTHENTICATOR MIGRATION
-   */
+  /* -------------------------------------------------------
+     GOOGLE MIGRATION
+  ------------------------------------------------------- */
+
   if (
-    text.startsWith(
+    value.startsWith(
       'otpauth-migration://'
     )
   ) {
 
-    const count =
+    const result =
       decodeMigration(
-        text
+        value
       );
 
 
-    const migrationTab =
+    const tab =
       document.querySelector(
 
         '[data-bs-target="#faMigration"]'
@@ -1218,26 +2794,63 @@ function handleQRText(text) {
       );
 
 
-    if (
-      migrationTab
-    ) {
+    if (tab) {
 
       bootstrap.Tab
         .getOrCreateInstance(
-          migrationTab
+          tab
         )
         .show();
     }
+
+
+    const pageNo =
+      result
+        .payload
+        .batchIndex +
+      1;
+
+
+    const progress =
+      batchProgressText(
+        result.batch
+      );
+
+
+    const duplicate =
+
+      result.duplicatePage
+
+        ? ' QR này đã được quét trước đó.'
+
+        : '';
 
 
     showStatus(
 
       'faMigrationStatus',
 
-      `✓ Đã giải mã ${count} tài khoản.`,
+      `✓ QR ${
+        pageNo
+      }/${
+        result.payload.batchSize
+      }: thêm ${
+        result.added
+      } tài khoản. ${
+        progress
+      }${
+        duplicate
+      }`,
 
-      'success'
+      result.complete
+        ? 'success'
+        : 'info'
 
+    );
+
+
+    hideStatus(
+      'faStatus'
     );
 
 
@@ -1245,17 +2858,18 @@ function handleQRText(text) {
   }
 
 
-  /*
-   * NORMAL OTPAUTH
-   */
+  /* -------------------------------------------------------
+     NORMAL OTPAUTH
+  ------------------------------------------------------- */
+
   if (
-    text.startsWith(
+    value.startsWith(
       'otpauth://'
     )
   ) {
 
     parseOTPAuth(
-      text
+      value
     );
 
 
@@ -1263,8 +2877,9 @@ function handleQRText(text) {
       $('faInput')
     ) {
 
-      $('faInput').value =
-        text;
+      $('faInput')
+        .value =
+        value;
     }
 
 
@@ -1272,14 +2887,33 @@ function handleQRText(text) {
       $('faQrInput')
     ) {
 
-      $('faQrInput').value =
-        text;
+      $('faQrInput')
+        .value =
+        value;
     }
 
 
     updateInfo();
 
     startOTP();
+
+
+    const tab =
+      document.querySelector(
+
+        '[data-bs-target="#faAuth"]'
+
+      );
+
+
+    if (tab) {
+
+      bootstrap.Tab
+        .getOrCreateInstance(
+          tab
+        )
+        .show();
+    }
 
 
     showStatus(
@@ -1293,36 +2927,22 @@ function handleQRText(text) {
     );
 
 
-    const authTab =
-      document.querySelector(
-
-        '[data-bs-target="#faAuth"]'
-
-      );
-
-
-    if (
-      authTab
-    ) {
-
-      bootstrap.Tab
-        .getOrCreateInstance(
-          authTab
-        )
-        .show();
-    }
+    hideStatus(
+      'faMigrationStatus'
+    );
 
 
     return;
   }
 
 
-  /*
-   * QR chứa Secret Base32 thuần
-   */
+  /* -------------------------------------------------------
+     BASE32 IN QR
+  ------------------------------------------------------- */
+
   const secret =
     normalizeBase32(
-      text
+      value
     );
 
 
@@ -1335,11 +2955,13 @@ function handleQRText(text) {
     );
 
 
-    $('faInput').value =
+    $('faInput')
+      .value =
       secret;
 
 
-    $('faQrInput').value =
+    $('faQrInput')
+      .value =
       secret;
 
 
@@ -1352,7 +2974,7 @@ function handleQRText(text) {
 
       'faStatus',
 
-      '✓ Đã đọc Secret từ QR.',
+      '✓ Đã đọc Secret Base32 từ QR.',
 
       'success'
 
@@ -1364,539 +2986,105 @@ function handleQRText(text) {
 
 
   throw new Error(
-    'QR không phải otpauth:// hoặc Google Authenticator Migration.'
+    'QR không chứa dữ liệu 2FA hợp lệ.'
   );
 }
 
 
 /* =========================================================
-   GOOGLE AUTHENTICATOR MIGRATION
-
-   Đây là decoder từ code gốc đã chạy được.
+   MIGRATION BATCH UI
 ========================================================= */
 
-function parseMigrationQR(uri) {
+function renderBatchState() {
 
-  if (
-    !uri.startsWith(
-      'otpauth-migration://offline?data='
-    )
-  ) {
+  const box =
+    $('faBatchState');
 
-    throw new Error(
-      'Không phải Google Authenticator Migration QR.'
-    );
-  }
 
+  if (!box) {
 
-  const encoded =
-    uri.split(
-      'data='
-    )[1];
-
-
-  if (!encoded) {
-
-    throw new Error(
-      'Migration QR không có data.'
-    );
-  }
-
-
-  let decoded;
-
-
-  try {
-
-    decoded =
-      decodeURIComponent(
-        encoded
-      );
-
-  } catch {
-
-    throw new Error(
-      'Không decode được Migration URI.'
-    );
-  }
-
-
-  let binary;
-
-
-  try {
-
-    binary =
-      atob(
-        decoded
-      );
-
-  } catch {
-
-    throw new Error(
-      'Không decode được Base64 Migration.'
-    );
-  }
-
-
-  const bytes =
-    Uint8Array.from(
-
-      binary,
-
-      character =>
-        character.charCodeAt(0)
-
-    );
-
-
-  return parseMigrationBytes(
-    bytes
-  );
-}
-
-
-/* =========================================================
-   MIGRATION PROTOBUF
-========================================================= */
-
-function parseMigrationBytes(
-  bytes
-) {
-
-  let offset = 0;
-
-  const output =
-    [];
-
-
-  const varint =
-    () => {
-
-      let result = 0;
-
-      let shift = 0;
-
-
-      while (
-        offset <
-        bytes.length
-      ) {
-
-        const byte =
-          bytes[
-            offset++
-          ];
-
-
-        result |=
-
-          (
-            byte &
-            127
-          ) << shift;
-
-
-        if (
-          !(byte & 128)
-        ) {
-
-          break;
-        }
-
-
-        shift += 7;
-      }
-
-
-      return (
-        result >>> 0
-      );
-    };
-
-
-  while (
-    offset <
-    bytes.length
-  ) {
-
-    const tag =
-      varint();
-
-
-    const wire =
-      tag & 7;
-
-
-    const field =
-      tag >>> 3;
-
-
-    /*
-     * field 1 =
-     * repeated OtpParameters
-     */
-    if (
-      field === 1
-    ) {
-
-      const length =
-        varint();
-
-
-      const sub =
-        bytes.subarray(
-
-          offset,
-
-          offset +
-          length
-
-        );
-
-
-      offset +=
-        length;
-
-
-      const account =
-        parseOtpParameters(
-          sub
-        );
-
-
-      if (
-        account
-      ) {
-
-        output.push(
-          account
-        );
-      }
-
-    } else if (
-      wire === 0
-    ) {
-
-      varint();
-
-    } else if (
-      wire === 2
-    ) {
-
-      const length =
-        varint();
-
-
-      offset +=
-        length;
-
-    } else {
-
-      break;
-    }
-  }
-
-
-  return output;
-}
-
-
-/* =========================================================
-   OTP PARAMETERS
-========================================================= */
-
-function parseOtpParameters(
-  bytes
-) {
-
-  let offset = 0;
-
-  let secretBytes =
-    null;
-
-  let name =
-    '';
-
-  let issuer =
-    '';
-
-  let algorithm =
-    1;
-
-  let digits =
-    1;
-
-
-  const varint =
-    () => {
-
-      let result = 0;
-
-      let shift = 0;
-
-
-      while (
-        offset <
-        bytes.length
-      ) {
-
-        const byte =
-          bytes[
-            offset++
-          ];
-
-
-        result |=
-
-          (
-            byte &
-            127
-          ) << shift;
-
-
-        if (
-          !(byte & 128)
-        ) {
-
-          break;
-        }
-
-
-        shift += 7;
-      }
-
-
-      return (
-        result >>> 0
-      );
-    };
-
-
-  const text =
-    () => {
-
-      const length =
-        varint();
-
-
-      const value =
-        new TextDecoder()
-          .decode(
-
-            bytes.subarray(
-
-              offset,
-
-              offset +
-              length
-
-            )
-
-          );
-
-
-      offset +=
-        length;
-
-
-      return value;
-    };
-
-
-  while (
-    offset <
-    bytes.length
-  ) {
-
-    const tag =
-      varint();
-
-
-    const wire =
-      tag & 7;
-
-
-    const field =
-      tag >>> 3;
-
-
-    if (
-      field === 1
-    ) {
-
-      const length =
-        varint();
-
-
-      secretBytes =
-        bytes.subarray(
-
-          offset,
-
-          offset +
-          length
-
-        );
-
-
-      offset +=
-        length;
-
-    } else if (
-      field === 2
-    ) {
-
-      name =
-        text();
-
-    } else if (
-      field === 3
-    ) {
-
-      issuer =
-        text();
-
-    } else if (
-      field === 4
-    ) {
-
-      algorithm =
-        varint();
-
-    } else if (
-      field === 5
-    ) {
-
-      digits =
-        varint();
-
-    } else if (
-      wire === 0
-    ) {
-
-      varint();
-
-    } else if (
-      wire === 2
-    ) {
-
-      const length =
-        varint();
-
-
-      offset +=
-        length;
-
-    } else {
-
-      break;
-    }
+    return;
   }
 
 
   if (
-    !secretBytes
+    !migrationBatches.size
   ) {
 
-    return null;
+    box.innerHTML =
+
+      '<div class="small text-secondary">Chưa có batch Migration.</div>';
+
+
+    return;
   }
 
 
-  const algorithmMap = {
+  box.innerHTML =
 
-    1:
-      'SHA1',
+    [
+      ...migrationBatches.values()
+    ]
+      .map(
 
-    2:
-      'SHA256',
+        batch => {
 
-    3:
-      'SHA512',
+          const done =
 
-    4:
-      'MD5'
-
-  };
+            batch.pages.size >=
+            batch.batchSize;
 
 
-  return {
+          return `
 
-    name,
+            <div
+              class="d-flex align-items-center justify-content-between gap-2 py-1"
+            >
 
-    account:
-      name,
+              <div
+                class="small text-truncate"
+              >
 
-    issuer,
+                <i
+                  class="bi ${
+                    done
+                      ? 'bi-check-circle-fill text-success'
+                      : 'bi-collection text-primary'
+                  } me-1"
+                ></i>
 
-    secret:
-      bytesToBase32(
-        secretBytes
-      ),
+                Batch ${
+                  esc(
+                    batch.batchId
+                  )
+                }
 
-    algorithm:
-
-      algorithmMap[
-        algorithm
-      ] ||
-
-      'SHA1',
-
-    digits:
-
-      digits === 2
-        ? 8
-        : 6,
-
-    period:
-      30
-  };
-}
+              </div>
 
 
-/* =========================================================
-   DECODE MIGRATION
-========================================================= */
+              <span
+                class="badge ${
+                  done
+                    ? 'text-bg-success'
+                    : 'text-bg-secondary'
+                }"
+              >
 
-function decodeMigration(uri) {
+                ${
+                  batch.pages.size
+                }/${
+                  batch.batchSize
+                }
 
-  const result =
-    parseMigrationQR(
+              </span>
 
-      String(
-        uri ||
-        ''
+            </div>
+
+          `;
+        }
+
       )
-        .trim()
-
-    );
-
-
-  if (
-    !result.length
-  ) {
-
-    throw new Error(
-      'Không tìm thấy tài khoản trong QR.'
-    );
-  }
-
-
-  accounts = [
-
-    ...accounts,
-
-    ...result
-
-  ];
-
-
-  renderAccounts();
-
-  startAccountTimer();
-
-
-  return result.length;
+      .join('');
 }
 
 
@@ -1916,6 +3104,14 @@ async function renderAccounts() {
   }
 
 
+  $('faAccountCount')
+    .textContent =
+
+    String(
+      accounts.length
+    );
+
+
   if (
     !accounts.length
   ) {
@@ -1925,7 +3121,7 @@ async function renderAccounts() {
       <tr>
 
         <td
-          colspan="6"
+          colspan="8"
           class="text-center text-secondary py-5"
         >
 
@@ -1933,7 +3129,7 @@ async function renderAccounts() {
             class="bi bi-qr-code-scan fs-2 d-block mb-2"
           ></i>
 
-          Chưa có dữ liệu.
+          Chưa có tài khoản.
 
         </td>
 
@@ -1942,29 +3138,7 @@ async function renderAccounts() {
     `;
 
 
-    if (
-      $('faAccountCount')
-    ) {
-
-      $('faAccountCount')
-        .textContent =
-        '0';
-    }
-
-
     return;
-  }
-
-
-  if (
-    $('faAccountCount')
-  ) {
-
-    $('faAccountCount')
-      .textContent =
-      String(
-        accounts.length
-      );
   }
 
 
@@ -1974,7 +3148,7 @@ async function renderAccounts() {
       accounts.map(
 
         async (
-          account,
+          acc,
           index
         ) => {
 
@@ -1985,12 +3159,12 @@ async function renderAccounts() {
           try {
 
             otp =
-              await generateTOTP(
-                account
+              await generateOTP(
+                acc
               );
 
           } catch {
-            // ignore
+            // unsupported algorithm etc.
           }
 
 
@@ -1999,44 +3173,93 @@ async function renderAccounts() {
             <tr>
 
               <td>
+
                 ${esc(
-                  account.account ||
-                  account.name ||
+                  acc.account ||
+                  acc.name ||
                   '-'
                 )}
+
               </td>
 
+
               <td>
+
                 ${esc(
-                  account.issuer ||
+                  acc.issuer ||
                   '-'
                 )}
+
               </td>
+
+
+              <td>
+
+                <span
+                  class="badge ${
+                    Number(acc.type) === 1
+
+                      ? 'text-bg-warning'
+
+                      : 'text-bg-primary'
+                  }"
+                >
+
+                  ${
+                    typeLabel(
+                      acc.type
+                    )
+                  }
+
+                </span>
+
+              </td>
+
 
               <td>
 
                 <code
                   class="small"
                 >
+
                   ${esc(
-                    account.secret
+                    acc.secret
                   )}
+
                 </code>
 
               </td>
 
+
               <td>
+
                 ${esc(
-                  account.algorithm
+                  acc.algorithm
                 )}
+
               </td>
+
+
+              <td>
+
+                ${
+                  acc.digits
+                }
+
+              </td>
+
 
               <td
                 class="fw-bold code-font text-success"
                 data-fa-otp="${index}"
               >
-                ${esc(otp)}
+
+                ${esc(
+                  otp
+                )}
+
               </td>
+
 
               <td>
 
@@ -2081,11 +3304,9 @@ async function renderAccounts() {
 
             const index =
               Number(
-
                 button
                   .dataset
                   .faCopy
-
               );
 
 
@@ -2113,10 +3334,6 @@ async function renderAccounts() {
 }
 
 
-/* =========================================================
-   MIGRATION OTP TIMER
-========================================================= */
-
 async function updateAccountOTPs() {
 
   await Promise.all(
@@ -2124,11 +3341,11 @@ async function updateAccountOTPs() {
     accounts.map(
 
       async (
-        account,
+        acc,
         index
       ) => {
 
-        const element =
+        const el =
           document.querySelector(
 
             `[data-fa-otp="${index}"]`
@@ -2136,7 +3353,7 @@ async function updateAccountOTPs() {
           );
 
 
-        if (!element) {
+        if (!el) {
 
           return;
         }
@@ -2144,14 +3361,14 @@ async function updateAccountOTPs() {
 
         try {
 
-          element.textContent =
-            await generateTOTP(
-              account
+          el.textContent =
+            await generateOTP(
+              acc
             );
 
         } catch {
 
-          element.textContent =
+          el.textContent =
             '------';
         }
       }
@@ -2189,12 +3406,13 @@ function startAccountTimer() {
 
 function normalizeQRText(value) {
 
-  value =
-    String(value || '')
-      .trim();
+  const input =
+    String(
+      value || ''
+    ).trim();
 
 
-  if (!value) {
+  if (!input) {
 
     throw new Error(
       'Hãy nhập Secret hoặc otpauth://.'
@@ -2206,7 +3424,7 @@ function normalizeQRText(value) {
    * Existing otpauth URI
    */
   if (
-    value
+    input
       .toLowerCase()
       .startsWith(
         'otpauth://'
@@ -2222,7 +3440,7 @@ function normalizeQRText(value) {
     try {
 
       parseOTPAuth(
-        value
+        input
       );
 
     } finally {
@@ -2232,7 +3450,7 @@ function normalizeQRText(value) {
     }
 
 
-    return value;
+    return input;
   }
 
 
@@ -2241,7 +3459,7 @@ function normalizeQRText(value) {
    */
   const secret =
     normalizeBase32(
-      value
+      input
     );
 
 
@@ -2272,7 +3490,14 @@ function normalizeQRText(value) {
       '2FA',
 
     account:
-      '2FA'
+      '2FA',
+
+    type:
+      2,
+
+    counter:
+      0
+
   });
 }
 
@@ -2326,6 +3551,7 @@ function generateQR(value) {
 
       correctLevel:
         QRCode.CorrectLevel.M
+
     }
 
   );
@@ -2350,33 +3576,27 @@ function generateQR(value) {
 
 
 /* =========================================================
-   CTRL + V
-   Giữ cách bắt clipboard giống code gốc
+   PASTE
 ========================================================= */
 
-function pasteHandler(event) {
+function clipboardImage(event) {
 
-  const module =
-    host();
+  const clipboard =
+    event.clipboardData;
 
 
-  if (
-    !module ||
-    !module
-      .classList
-      .contains('active') ||
-    !event.clipboardData
-  ) {
+  if (!clipboard) {
 
-    return;
+    return null;
   }
 
 
+  /*
+   * ClipboardItem
+   */
   for (
     const item
-    of event
-      .clipboardData
-      .items ||
+    of clipboard.items ||
     []
   ) {
 
@@ -2385,6 +3605,7 @@ function pasteHandler(event) {
         item.type ||
         ''
       )
+        .toLowerCase()
         .startsWith(
           'image/'
         )
@@ -2396,16 +3617,159 @@ function pasteHandler(event) {
 
       if (file) {
 
-        readQR(
-          file
-        );
-
-
-        event.preventDefault();
+        return file;
       }
+    }
+  }
 
 
-      return;
+  /*
+   * Files fallback
+   */
+  for (
+    const file
+    of clipboard.files ||
+    []
+  ) {
+
+    if (
+      String(
+        file.type ||
+        ''
+      )
+        .toLowerCase()
+        .startsWith(
+          'image/'
+        )
+    ) {
+
+      return file;
+    }
+  }
+
+
+  return null;
+}
+
+
+function pasteHandler(event) {
+
+  if (
+    !isTwoFAActive()
+  ) {
+
+    return;
+  }
+
+
+  /*
+   * IMAGE FIRST
+   */
+  const file =
+    clipboardImage(
+      event
+    );
+
+
+  if (file) {
+
+    event.preventDefault();
+
+    event.stopPropagation();
+
+
+    readQR(
+      file
+    );
+
+
+    return;
+  }
+
+
+  /*
+   * Nếu focus textarea/input
+   * cho browser paste text bình thường.
+   */
+  const target =
+    event.target;
+
+
+  const isField =
+
+    target instanceof
+      HTMLInputElement ||
+
+    target instanceof
+      HTMLTextAreaElement ||
+
+    target?.isContentEditable;
+
+
+  if (isField) {
+
+    return;
+  }
+
+
+  const text =
+    event
+      .clipboardData
+      ?.getData(
+        'text/plain'
+      )
+      ?.trim();
+
+
+  if (!text) {
+
+    return;
+  }
+
+
+  if (
+
+    text.startsWith(
+      'otpauth://'
+    ) ||
+
+    text.startsWith(
+      'otpauth-migration://'
+    )
+
+  ) {
+
+    event.preventDefault();
+
+
+    try {
+
+      handleQRText(
+        text
+      );
+
+    } catch (error) {
+
+      showStatus(
+
+        'faStatus',
+
+        error.message,
+
+        'danger'
+
+      );
+
+
+      showStatus(
+
+        'faMigrationStatus',
+
+        error.message,
+
+        'danger'
+
+      );
     }
   }
 }
@@ -2422,10 +3786,10 @@ function bindPasteOnce() {
 
 
   /*
-   * Capture phase để vẫn bắt ảnh
-   * khi cursor đang ở textarea.
+   * Capture phase:
+   * bắt Ctrl+V trước textarea/input.
    */
-  document.addEventListener(
+  window.addEventListener(
 
     'paste',
 
@@ -2466,7 +3830,9 @@ export function render() {
 
       <div>
 
-        <h4 class="mb-1">
+        <h4
+          class="mb-1"
+        >
 
           <i
             class="bi bi-shield-lock-fill text-primary me-2"
@@ -2476,11 +3842,12 @@ export function render() {
 
         </h4>
 
+
         <div
           class="small text-secondary"
         >
 
-          Secret, QR và OTP chỉ xử lý trong trình duyệt.
+          QR, Secret và OTP chỉ xử lý trong trình duyệt.
           Không lưu localStorage.
 
         </div>
@@ -2546,7 +3913,7 @@ export function render() {
             class="bi bi-qr-code-scan me-1"
           ></i>
 
-          Migration QR
+          Google Migration
 
         </button>
 
@@ -2560,9 +3927,7 @@ export function render() {
     >
 
 
-      <!-- ================================================
-           AUTHENTICATOR
-      ================================================= -->
+      <!-- AUTH -->
 
       <div
         class="tab-pane fade show active"
@@ -2580,7 +3945,7 @@ export function render() {
         >
 
 
-          <!-- QR -> OTP -->
+          <!-- QR / SECRET -> OTP -->
 
           <div
             class="card p-3"
@@ -2610,6 +3975,7 @@ export function render() {
                   QR / Secret → OTP
 
                 </div>
+
 
                 <div
                   class="small text-secondary"
@@ -2648,7 +4014,7 @@ export function render() {
                 class="small text-secondary mt-1"
               >
 
-                Hỗ trợ QR đơn và Google Authenticator Migration
+                Hỗ trợ QR otpauth và Google Authenticator Export
 
               </div>
 
@@ -2825,7 +4191,9 @@ export function render() {
                 <div
                   id="faAlgo"
                 >
-                  SHA1 · 6 digits · 30s
+
+                  TOTP · SHA1 · 6 digits · 30s
+
                 </div>
 
               </div>
@@ -2866,11 +4234,12 @@ export function render() {
 
                 </div>
 
+
                 <div
                   class="small text-secondary"
                 >
 
-                  Tạo lại QR Authenticator
+                  Tạo QR Authenticator từ Secret
 
                 </div>
 
@@ -2938,9 +4307,7 @@ export function render() {
       </div>
 
 
-      <!-- ================================================
-           MIGRATION
-      ================================================= -->
+      <!-- GOOGLE MIGRATION -->
 
       <div
         class="tab-pane fade"
@@ -2962,6 +4329,8 @@ export function render() {
           >
 
 
+            <!-- LEFT -->
+
             <div
               class="col-lg-4"
             >
@@ -2971,7 +4340,7 @@ export function render() {
               >
 
                 <i
-                  class="bi bi-qr-code-scan fs-4 text-primary"
+                  class="bi bi-google fs-4 text-primary"
                 ></i>
 
 
@@ -2981,15 +4350,16 @@ export function render() {
                     class="fw-semibold"
                   >
 
-                    Google Authenticator Migration
+                    Google Authenticator Export
 
                   </div>
+
 
                   <div
                     class="small text-secondary"
                   >
 
-                    Export một hoặc nhiều tài khoản
+                    Quét tuần tự tất cả QR nếu Google hiển thị nhiều trang
 
                   </div>
 
@@ -3005,7 +4375,7 @@ export function render() {
               >
 
                 <i
-                  class="bi bi-images fs-1 d-block mb-2"
+                  class="bi bi-qr-code-scan fs-1 d-block mb-2"
                 ></i>
 
 
@@ -3014,6 +4384,15 @@ export function render() {
                 >
 
                   Ctrl+V / kéo / chọn QR Migration
+
+                </div>
+
+
+                <div
+                  class="small text-secondary mt-1"
+                >
+
+                  Ví dụ QR 1/3 → 2/3 → 3/3
 
                 </div>
 
@@ -3031,7 +4410,7 @@ export function render() {
               <textarea
                 id="faMigrationText"
                 class="form-control code-font"
-                rows="7"
+                rows="6"
                 placeholder="otpauth-migration://offline?data=..."
               ></textarea>
 
@@ -3049,7 +4428,7 @@ export function render() {
                     class="bi bi-cpu me-1"
                   ></i>
 
-                  Giải mã
+                  Giải mã chuỗi
 
                 </button>
 
@@ -3063,7 +4442,7 @@ export function render() {
                     class="bi bi-copy me-1"
                   ></i>
 
-                  Copy tất cả Secret
+                  Copy Secret
 
                 </button>
 
@@ -3083,8 +4462,32 @@ export function render() {
 
               </div>
 
+
+              <!-- BATCH -->
+
+              <div
+                class="card surface-2 p-2 mt-3"
+              >
+
+                <div
+                  class="section-title mb-2"
+                >
+
+                  Batch progress
+
+                </div>
+
+
+                <div
+                  id="faBatchState"
+                ></div>
+
+              </div>
+
             </div>
 
+
+            <!-- RIGHT -->
 
             <div
               class="col-lg-8"
@@ -3095,7 +4498,9 @@ export function render() {
               >
 
                 <strong>
-                  Kết quả
+
+                  Kết quả Migration
+
                 </strong>
 
 
@@ -3137,11 +4542,19 @@ export function render() {
                       </th>
 
                       <th>
+                        Type
+                      </th>
+
+                      <th>
                         Secret
                       </th>
 
                       <th>
                         Algo
+                      </th>
+
+                      <th>
+                        Digits
                       </th>
 
                       <th>
@@ -3172,6 +4585,7 @@ export function render() {
       </div>
 
     </div>
+
   `;
 
 
@@ -3189,7 +4603,8 @@ export function render() {
         );
 
 
-        $('faQrInput').value =
+        $('faQrInput')
+          .value =
           $('faInput').value;
 
 
@@ -3237,12 +4652,10 @@ export function render() {
         code === '------'
       ) {
 
-        toast(
+        return toast(
           'Chưa có OTP.',
           'warning'
         );
-
-        return;
       }
 
 
@@ -3279,7 +4692,14 @@ export function render() {
           '',
 
         account:
-          ''
+          '',
+
+        type:
+          2,
+
+        counter:
+          0
+
       };
 
 
@@ -3293,7 +4713,7 @@ export function render() {
 
 
   /* ======================================================
-     FILE
+     FILE INPUT
   ====================================================== */
 
   $('faFile').onchange =
@@ -3337,16 +4757,17 @@ export function render() {
   const bindDrop =
     element => {
 
+
       [
         'dragenter',
         'dragover'
       ].forEach(
 
-        eventName => {
+        name => {
 
           element.addEventListener(
 
-            eventName,
+            name,
 
             event => {
 
@@ -3371,11 +4792,11 @@ export function render() {
         'drop'
       ].forEach(
 
-        eventName => {
+        name => {
 
           element.addEventListener(
 
-            eventName,
+            name,
 
             event => {
 
@@ -3401,13 +4822,37 @@ export function render() {
 
         event => {
 
-          readQR(
+          const file =
 
-            event
-              .dataTransfer
-              .files?.[0]
+            [
+              ...(
+                event
+                  .dataTransfer
+                  ?.files ||
+                []
+              )
+            ]
+              .find(
 
-          );
+                file =>
+
+                  String(
+                    file.type ||
+                    ''
+                  )
+                    .startsWith(
+                      'image/'
+                    )
+
+              );
+
+
+          if (file) {
+
+            readQR(
+              file
+            );
+          }
         }
 
       );
@@ -3478,12 +4923,10 @@ export function render() {
 
       if (!canvas) {
 
-        toast(
+        return toast(
           'Chưa có QR.',
           'warning'
         );
-
-        return;
       }
 
 
@@ -3516,7 +4959,7 @@ export function render() {
 
       try {
 
-        const count =
+        const result =
           decodeMigration(
 
             $('faMigrationText')
@@ -3526,13 +4969,34 @@ export function render() {
           );
 
 
+        const pageNo =
+
+          result
+            .payload
+            .batchIndex +
+
+          1;
+
+
         showStatus(
 
           'faMigrationStatus',
 
-          `✓ Đã giải mã ${count} tài khoản.`,
+          `✓ QR ${
+            pageNo
+          }/${
+            result.payload.batchSize
+          }: thêm ${
+            result.added
+          } tài khoản. ${
+            batchProgressText(
+              result.batch
+            )
+          }`,
 
-          'success'
+          result.complete
+            ? 'success'
+            : 'info'
 
         );
 
@@ -3542,8 +5006,9 @@ export function render() {
 
           'faMigrationStatus',
 
-          'Lỗi giải mã: ' +
-          error.message,
+          `Lỗi giải mã: ${
+            error.message
+          }`,
 
           'danger'
 
@@ -3559,12 +5024,10 @@ export function render() {
         !accounts.length
       ) {
 
-        toast(
+        return toast(
           'Chưa có tài khoản.',
           'warning'
         );
-
-        return;
       }
 
 
@@ -3573,20 +5036,23 @@ export function render() {
         accounts
           .map(
 
-            account =>
+            acc =>
 
               `${
-                account.issuer ||
+                acc.issuer ||
                 'Account'
               }: ${
-                account.account ||
-                account.name
+                acc.account ||
+                acc.name ||
+                '-'
               } - ${
-                account.secret
+                acc.secret
               }`
 
           )
-          .join('\n')
+          .join(
+            '\n'
+          )
 
       );
 
@@ -3608,12 +5074,18 @@ export function render() {
         [];
 
 
+      migrationBatches
+        .clear();
+
+
       clearInterval(
         accountTimer
       );
 
 
       renderAccounts();
+
+      renderBatchState();
 
 
       hideStatus(
@@ -3628,6 +5100,8 @@ export function render() {
 
   renderAccounts();
 
+  renderBatchState();
+
 
   if (
     accounts.length
@@ -3641,13 +5115,15 @@ export function render() {
     current.secret
   ) {
 
-    $('faInput').value =
+    $('faInput')
+      .value =
       makeOtpAuth(
         current
       );
 
 
-    $('faQrInput').value =
+    $('faQrInput')
+      .value =
       makeOtpAuth(
         current
       );
