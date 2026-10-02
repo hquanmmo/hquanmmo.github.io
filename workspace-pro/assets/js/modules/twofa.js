@@ -91,19 +91,93 @@ function readQR(file){
   reader.onerror=()=>toast('Không đọc được file ảnh.','danger');reader.readAsDataURL(file);
 }
 
-function getImageFromClipboard(e){
-  const items=[...(e.clipboardData?.items||[])];
-  const imageItem=items.find(item=>item.kind==='file'&&item.type.startsWith('image/'));
-  if(imageItem)return imageItem.getAsFile();
-  const files=[...(e.clipboardData?.files||[])];
-  return files.find(f=>f.type.startsWith('image/'))||null;
-}
+function globalPasteHandler(e) {
 
-function globalPasteHandler(e){
-  if(!host()?.classList.contains('active'))return;
-  const file=getImageFromClipboard(e);if(!file)return;
+  // Chỉ xử lý khi đang mở module 2FA
+  const twofaModule =
+    document.getElementById('module-twofa');
+
+  if (
+    !twofaModule ||
+    !twofaModule.classList.contains('active')
+  ) {
+    return;
+  }
+
+  const clipboard =
+    e.clipboardData;
+
+  if (!clipboard) {
+    return;
+  }
+
+  let imageFile = null;
+
+
+  // Cách 1:
+  // Đọc trực tiếp clipboard items
+  // Đây là cách code 2FA cũ của bạn đang dùng tốt.
+  if (
+    clipboard.items &&
+    clipboard.items.length
+  ) {
+
+    for (const item of clipboard.items) {
+
+      const type =
+        String(item.type || '')
+          .toLowerCase();
+
+      if (type.startsWith('image/')) {
+
+        imageFile =
+          item.getAsFile();
+
+        if (imageFile) {
+          break;
+        }
+      }
+    }
+  }
+
+
+  // Cách 2:
+  // Fallback cho Edge / Windows clipboard
+  if (
+    !imageFile &&
+    clipboard.files &&
+    clipboard.files.length
+  ) {
+
+    for (const file of clipboard.files) {
+
+      const type =
+        String(file.type || '')
+          .toLowerCase();
+
+      if (type.startsWith('image/')) {
+
+        imageFile = file;
+        break;
+      }
+    }
+  }
+
+
+  // Clipboard không có ảnh
+  // => để Ctrl+V text hoạt động bình thường
+  if (!imageFile) {
+    return;
+  }
+
+
+  // Có ảnh thì chặn browser paste vào textarea
   e.preventDefault();
-  readQR(file);
+  e.stopPropagation();
+
+
+  // Gửi ảnh sang QR reader
+  readQR(imageFile);
 }
 
 async function renderMigration(){
