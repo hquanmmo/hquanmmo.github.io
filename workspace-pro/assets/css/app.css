@@ -1,0 +1,84 @@
+:root{
+  --wp-bg:#08111f;
+  --wp-surface:#0f1b2e;
+  --wp-surface-2:#13233a;
+  --wp-border:#223652;
+  --wp-muted:#8da0ba;
+  --wp-accent:#6c63ff;
+}
+html,body{min-height:100%;background:var(--wp-bg);}
+body{
+  background:
+    radial-gradient(circle at 0 0,rgba(108,99,255,.10),transparent 28rem),
+    var(--wp-bg);
+}
+.app-header{
+  background:rgba(13,24,42,.96);
+  border-bottom:1px solid var(--wp-border);
+  backdrop-filter:blur(16px);
+}
+.brand-logo{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  color:#fff;background:linear-gradient(135deg,#4f63ff,#8b5cf6);
+  box-shadow:0 8px 24px rgba(79,99,255,.25)
+}
+.nav-pills .nav-link{color:#a8b5c8;background:#13213a;border:1px solid transparent;white-space:nowrap}
+.nav-pills .nav-link:hover{color:#fff;border-color:#2b4164}
+.nav-pills .nav-link.active{background:#f8f9fa;color:#121b2a}
+.module-view{display:none}
+.module-view.active{display:block}
+.card,.modal-content,.offcanvas{border-color:var(--wp-border)!important;background:var(--wp-surface)!important}
+.surface-2{background:var(--wp-surface-2)!important}
+.text-muted-2{color:var(--wp-muted)!important}
+.min-w-0{min-width:0}
+.cursor-pointer{cursor:pointer}
+.form-control,.form-select{
+  background:#0b1728;border-color:#2a3e5e;color:#f3f6fb;
+}
+.form-control:focus,.form-select:focus{
+  background:#0d1a2d;color:#fff;border-color:#6f79ff;
+  box-shadow:0 0 0 .2rem rgba(108,99,255,.12)
+}
+.dropdown-menu{border-color:var(--wp-border);background:#101d31}
+.dropdown-item{color:#e7edf6}
+.dropdown-item:hover{background:#182944;color:#fff}
+.btn-outline-secondary{--bs-btn-color:#c5d0df;--bs-btn-border-color:#344a69;--bs-btn-hover-bg:#1b2b45;--bs-btn-hover-border-color:#4b668e}
+.section-title{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#a7b5c9;font-weight:700}
+.empty-state{padding:3rem 1rem;text-align:center;color:#7f91aa}
+.code-font,pre,code,textarea.code-editor{font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace}
+.dragging{opacity:.45}
+.drop-target{outline:2px dashed #7b7fff;outline-offset:3px}
+.bookmark-folder{border:1px solid transparent;border-radius:12px;padding:.55rem}
+.bookmark-folder:hover{background:rgba(255,255,255,.015);border-color:rgba(255,255,255,.04)}
+.bookmark-grid{display:flex;flex-wrap:wrap;gap:.55rem}
+.bookmark-card{
+  min-width:130px;max-width:260px;padding:.65rem .8rem;border-radius:10px;
+  border:1px solid #263c5c;background:#111f34;color:#fff;
+  display:flex;align-items:center;gap:.55rem;text-decoration:none
+}
+.bookmark-card:hover{background:#172943;border-color:#39577f;color:#fff;transform:translateY(-1px)}
+.bookmark-icon{width:24px;height:24px;object-fit:contain;border-radius:5px;background:#17263d;padding:2px}
+.todo-item{border:1px solid var(--wp-border);border-radius:12px;background:#0f1b2e;padding:.75rem}
+.todo-item.done{opacity:.55}
+.ps-layout{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:calc(100vh - 175px)}
+.ps-sidebar{border-right:1px solid var(--wp-border);padding-right:1rem}
+.ps-main{padding-left:1rem}
+.ps-doc-item{border:1px solid transparent;border-radius:10px;padding:.6rem .7rem;cursor:pointer}
+.ps-doc-item:hover,.ps-doc-item.active{background:#14243d;border-color:#263d5f}
+.ps-code-block{border:1px solid #2a4165;border-radius:12px;overflow:hidden;background:#07111f}
+.ps-code-head{padding:.45rem .65rem;background:#13233a;border-bottom:1px solid #2a4165}
+.ps-code-body{padding:.8rem;margin:0;white-space:pre-wrap;word-break:break-word;color:#dbe7f7}
+.ps-text-block{line-height:1.65;color:#d5deea}
+.ps-var-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}
+.twofa-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem}
+.otp-code{font:800 2rem "Cascadia Code",Consolas,monospace;letter-spacing:.18em}
+.qr-preview{min-height:260px;display:grid;place-items:center;background:white;border-radius:12px}
+.qr-drop{border:1.5px dashed #385275;border-radius:12px;padding:2rem;text-align:center;background:#0a1627}
+.qr-drop.drag{border-color:#777dff;background:#111f36}
+.table{--bs-table-bg:transparent}
+@media(max-width:900px){
+  .ps-layout{grid-template-columns:1fr}
+  .ps-sidebar{border-right:0;border-bottom:1px solid var(--wp-border);padding:0 0 1rem;margin-bottom:1rem}
+  .ps-main{padding-left:0}
+  .twofa-grid{grid-template-columns:1fr}
+}
