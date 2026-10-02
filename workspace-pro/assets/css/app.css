@@ -1,0 +1,179 @@
+:root{
+  --wp-bg:#080d18;
+  --wp-bg-soft:#0b1220;
+  --wp-surface:#101827;
+  --wp-surface-2:#141e30;
+  --wp-surface-3:#18253a;
+  --wp-border:#25334a;
+  --wp-border-soft:rgba(148,163,184,.13);
+  --wp-text:#f8fafc;
+  --wp-muted:#94a3b8;
+  --wp-subtle:#64748b;
+  --wp-primary:#7c6cf2;
+  --wp-primary-2:#5b8cff;
+  --wp-success:#31c48d;
+  --wp-warning:#f6c453;
+  --wp-danger:#f56b7f;
+  --wp-radius:14px;
+  --wp-shadow:0 14px 40px rgba(0,0,0,.22);
+}
+
+*{box-sizing:border-box}
+html,body{min-height:100%;background:var(--wp-bg)}
+body{
+  margin:0;
+  color:var(--wp-text);
+  font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:14px;
+  line-height:1.45;
+  background:
+    radial-gradient(circle at 12% -10%,rgba(124,108,242,.15),transparent 32rem),
+    radial-gradient(circle at 94% 0,rgba(91,140,255,.08),transparent 28rem),
+    var(--wp-bg);
+}
+button,input,textarea,select{font:inherit}
+a{color:inherit}
+
+.app-header{
+  background:rgba(9,15,27,.9);
+  border-bottom:1px solid var(--wp-border-soft);
+  backdrop-filter:blur(18px) saturate(140%);
+  box-shadow:0 8px 30px rgba(0,0,0,.18);
+}
+.brand-logo{
+  width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  color:#fff;background:linear-gradient(135deg,var(--wp-primary),var(--wp-primary-2));
+  box-shadow:0 10px 24px rgba(91,140,255,.2)
+}
+.app-header .fw-bold{font-size:14px;letter-spacing:-.01em}
+.app-header .small{font-size:10px}
+
+#mainNav{padding:4px;background:rgba(255,255,255,.025);border:1px solid var(--wp-border-soft);border-radius:13px;width:max-content;max-width:100%}
+.nav-pills .nav-link{
+  color:#a9b6c9;background:transparent;border:1px solid transparent;white-space:nowrap;
+  border-radius:9px;padding:.48rem .78rem;font-size:12px;font-weight:700;transition:.16s ease
+}
+.nav-pills .nav-link:hover{color:#fff;background:rgba(255,255,255,.045)}
+.nav-pills .nav-link.active{
+  color:#fff;background:linear-gradient(135deg,rgba(124,108,242,.95),rgba(91,140,255,.95));
+  box-shadow:0 7px 18px rgba(91,140,255,.18)
+}
+
+.module-view{display:none;animation:wpFade .14s ease}
+.module-view.active{display:block}
+@keyframes wpFade{from{opacity:.35;transform:translateY(2px)}to{opacity:1;transform:none}}
+
+.card,.modal-content,.offcanvas{
+  border:1px solid var(--wp-border-soft)!important;
+  background:linear-gradient(180deg,rgba(18,28,45,.98),rgba(14,22,36,.98))!important;
+  border-radius:var(--wp-radius)!important;
+  box-shadow:var(--wp-shadow)
+}
+.modal-header,.modal-footer{border-color:var(--wp-border-soft)}
+.modal-title{font-size:15px;font-weight:800}
+.surface-2{background:var(--wp-surface-2)!important}
+.text-muted-2,.text-secondary{color:var(--wp-muted)!important}
+.min-w-0{min-width:0}.cursor-pointer{cursor:pointer}
+
+.form-label{font-size:11px;font-weight:700;color:#b9c5d6;margin-bottom:.4rem}
+.form-control,.form-select,.input-group-text{
+  background:#0b1423;border-color:#2a3951;color:#f3f6fb;border-radius:10px
+}
+.form-control,.form-select{min-height:40px}
+.form-control-sm,.form-select-sm{min-height:32px;border-radius:8px;font-size:12px}
+.form-control::placeholder{color:#5f718a}
+.form-control:focus,.form-select:focus{
+  background:#0e1828;color:#fff;border-color:#756ff5;
+  box-shadow:0 0 0 .2rem rgba(124,108,242,.12)
+}
+.input-group-text{color:#8191a8}
+.dropdown-menu{border:1px solid var(--wp-border)!important;background:#111c2e;box-shadow:0 14px 36px rgba(0,0,0,.3);border-radius:11px;padding:.4rem}
+.dropdown-item{color:#dfe7f1;border-radius:7px;font-size:12px;padding:.5rem .65rem}
+.dropdown-item:hover{background:#1a2941;color:#fff}
+
+.btn{border-radius:9px;font-weight:700;letter-spacing:-.01em}
+.btn-sm{font-size:11px;padding:.4rem .65rem}
+.btn-primary{--bs-btn-bg:#6f63e9;--bs-btn-border-color:#6f63e9;--bs-btn-hover-bg:#7d72f1;--bs-btn-hover-border-color:#7d72f1}
+.btn-outline-primary{--bs-btn-color:#a9a3ff;--bs-btn-border-color:#4f4b8f;--bs-btn-hover-bg:#6f63e9;--bs-btn-hover-border-color:#6f63e9}
+.btn-outline-secondary{--bs-btn-color:#c1ccda;--bs-btn-border-color:#35455f;--bs-btn-hover-bg:#1b2b45;--bs-btn-hover-border-color:#4b668e}
+.btn-outline-danger{--bs-btn-color:#ff9cac;--bs-btn-border-color:#6f3542;--bs-btn-hover-bg:#9f3d50;--bs-btn-hover-border-color:#9f3d50}
+
+.section-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.085em;color:#95a6bc;font-weight:800}
+.empty-state{padding:4rem 1rem;text-align:center;color:#71839b}
+.code-font,pre,code,textarea.code-editor{font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace}
+.badge{font-weight:700}
+
+/* Bookmark */
+.bookmark-toolbar{background:rgba(255,255,255,.018);border:1px solid var(--wp-border-soft);border-radius:14px;padding:.75rem}
+.bookmark-folder{
+  border:1px solid transparent;border-radius:14px;padding:.65rem .7rem .8rem;
+  transition:.15s ease
+}
+.bookmark-folder:hover{background:rgba(255,255,255,.018);border-color:var(--wp-border-soft)}
+.bookmark-folder.sortable-ghost{opacity:.25;background:rgba(124,108,242,.15);border-color:#746df2}
+.folder-drag-handle,.bookmark-drag-handle{cursor:grab;color:#63758d}.folder-drag-handle:active,.bookmark-drag-handle:active{cursor:grabbing}
+.folder-title{font-size:12px;font-weight:800;color:#eaf0f8;letter-spacing:.005em}
+.folder-count{font-size:9px;color:#8ea1b9;background:#17253b;border:1px solid #253b5d;border-radius:999px;padding:.1rem .42rem}
+.bookmark-grid{display:flex;flex-wrap:wrap;gap:.58rem;min-height:48px}
+.bookmark-grid.sortable-drag{opacity:.8}
+.bookmark-tile{position:relative;display:flex;align-items:stretch;min-width:145px;max-width:275px}
+.bookmark-tile.sortable-ghost{opacity:.22}
+.bookmark-card{
+  flex:1;min-width:0;padding:.62rem 2.8rem .62rem .72rem;border-radius:11px;
+  border:1px solid #263955;background:linear-gradient(180deg,#132037,#101b2e);
+  color:#fff;display:flex;align-items:center;gap:.55rem;text-decoration:none;
+  transition:transform .14s ease,border-color .14s ease,background .14s ease,box-shadow .14s ease
+}
+.bookmark-card:hover{
+  background:linear-gradient(180deg,#182a46,#13223a);border-color:#3c5d88;color:#fff;
+  transform:translateY(-1px);box-shadow:0 9px 20px rgba(0,0,0,.2)
+}
+.bookmark-icon{width:25px;height:25px;object-fit:contain;border-radius:6px;background:#18283f;padding:3px;flex:none}
+.bookmark-card-title{font-size:11px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bookmark-controls{position:absolute;top:50%;right:.34rem;transform:translateY(-50%);display:flex;align-items:center;gap:.12rem}
+.bookmark-controls .btn{width:24px;height:24px;padding:0;display:grid;place-items:center;border:0;background:transparent;color:#71859f}
+.bookmark-controls .btn:hover{color:#fff;background:#22334d}
+.icon-library-item{width:92px;background:#0e192a;border:1px solid var(--wp-border-soft);border-radius:11px;padding:.65rem;text-align:center}
+
+/* Todo */
+.todo-item{border:1px solid var(--wp-border-soft);border-radius:13px;background:linear-gradient(180deg,#111d30,#0f1929);padding:.8rem;transition:.15s ease}
+.todo-item:hover{border-color:#314966;background:#132138}.todo-item.done{opacity:.52}
+.todo-title{font-size:12px;font-weight:800}
+
+/* PowerShell */
+.ps-layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:calc(100vh - 185px);border:1px solid var(--wp-border-soft);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.012)}
+.ps-sidebar{padding:1rem;background:#0c1524;border-right:1px solid var(--wp-border-soft)}
+.ps-main{padding:1.15rem 1.35rem;min-width:0}
+.ps-doc-item{border:1px solid transparent;border-radius:10px;padding:.6rem .7rem;cursor:pointer;transition:.14s ease}
+.ps-doc-item:hover{background:#13223a}.ps-doc-item.active{background:#172842;border-color:#2b466d}
+.ps-code-block{border:1px solid #2b405f;border-radius:13px;overflow:hidden;background:#070e19;box-shadow:0 10px 28px rgba(0,0,0,.17)}
+.ps-code-head{padding:.42rem .62rem;background:#121f33;border-bottom:1px solid #243a59}
+.ps-code-body{padding:.9rem 1rem;margin:0;white-space:pre-wrap;word-break:break-word;color:#dbe7f7;font-size:12px;line-height:1.65}
+.ps-text-block{line-height:1.7;color:#d4deea;font-size:13px}
+.ps-vars-panel{border-top:1px solid var(--wp-border-soft);margin-top:1rem;padding-top:.9rem}
+.ps-vars-list{display:grid;gap:.55rem;max-width:900px}
+.ps-var-row{display:grid;grid-template-columns:145px 118px minmax(180px,1fr);gap:.55rem;align-items:start}
+.ps-var-name{height:32px;display:flex;align-items:center;gap:.4rem;font-size:11px;color:#9fb0c7}
+.ps-var-chip{font:600 10px "Cascadia Code",Consolas,monospace;color:#b9b4ff;background:rgba(124,108,242,.11);border:1px solid rgba(124,108,242,.26);border-radius:6px;padding:.18rem .35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:115px}
+.ps-var-input textarea{min-height:70px!important;resize:vertical}
+
+/* 2FA */
+.twofa-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem}
+.twofa-card{box-shadow:none!important}
+.otp-code{font:800 2.05rem "Cascadia Code",Consolas,monospace;letter-spacing:.18em;color:#f7f9fc}
+.qr-preview{min-height:270px;display:grid;place-items:center;background:#fff;border-radius:13px;padding:14px}
+.qr-drop{border:1.5px dashed #385275;border-radius:13px;padding:1.6rem;text-align:center;background:#0a1525;transition:.15s ease}
+.qr-drop:hover,.qr-drop.drag{border-color:#8279ff;background:#111d34;box-shadow:inset 0 0 0 1px rgba(124,108,242,.08)}
+.fa-paste-hint{font-size:11px;color:#8ea0b7;background:#101b2d;border:1px solid var(--wp-border-soft);border-radius:9px;padding:.5rem .65rem}
+.table{--bs-table-bg:transparent;--bs-table-color:#dce5ef;--bs-table-border-color:rgba(148,163,184,.1)}
+
+#globalReminder{border:1px solid rgba(246,196,83,.28)!important;background:linear-gradient(90deg,rgba(246,196,83,.15),rgba(246,196,83,.08))!important;color:#fff!important;border-radius:11px}
+.toast{border-radius:10px!important;box-shadow:var(--wp-shadow)}
+
+@media(max-width:900px){
+  .ps-layout{grid-template-columns:1fr}.ps-sidebar{border-right:0;border-bottom:1px solid var(--wp-border-soft)}
+  .twofa-grid{grid-template-columns:1fr}.ps-var-row{grid-template-columns:1fr}.ps-var-name{height:auto}.bookmark-tile{max-width:100%}
+}
+@media(max-width:580px){
+  body{font-size:13px}.bookmark-tile{width:100%}.bookmark-card{max-width:none}.ps-main{padding:1rem}.app-header .container-fluid{padding-left:.75rem!important;padding-right:.75rem!important}
+}
