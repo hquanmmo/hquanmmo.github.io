@@ -1,0 +1,8 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Không ứng dụng client nào được đọc/ghi Firestore trực tiếp.
+    // Mọi thao tác đi qua Firebase Callable Functions đã xác thực và kiểm tra role/scope.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
