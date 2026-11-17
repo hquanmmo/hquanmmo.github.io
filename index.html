@@ -1,214 +1,483 @@
 <!DOCTYPE html>
-<html lang="vi" class="scroll-smooth">
+<html lang="vi" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="google-site-verification" content="Q7Qfc6yip61vCgoxrrhp152fRNIqLsOojXGIbqLDIYg" />
-  <title>Landing Page giá rẻ từ 2$ | Chuẩn SEO – Tối ưu chuyển đổi</title>
-<meta name="googlebot" content="index,follow" />
-<link rel="canonical" href="https://hquanmmo.github.io/" />
-<meta name="description" content="Thiết kế landing page giá rẻ từ 2$ cho cá nhân, shop online, TikToker. Chuẩn SEO, tối ưu chuyển đổi, triển khai nhanh.">
-<meta name="keywords" content="landing page giá rẻ, landing page 2 đô, thiết kế landing page, landing page tiktoker">
-<meta name="author" content="LandingPagePro">
-<meta name="robots" content="index, follow">
-
-<meta property="og:title" content="Landing Page giá rẻ từ 2$ – Có khách ngay">
-<meta property="og:description" content="Landing page 1 trang – đơn giản – hiệu quả – phù hợp bán hàng online">
-<meta property="og:type" content="website">
-
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        primary: '#2563eb',
-        secondary: '#0f172a'
-      }
-    }
-  }
-}
-</script>
-
-<style>
-.reveal {opacity:0; transform:translateY(40px); transition:0.8s}
-.reveal.active {opacity:1; transform:none}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Image Export - 300 PPI & 16-bit PNG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        cardBg: '#1e293b',
+                        accent: '#3b82f6'
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+<body class="bg-darkBg text-slate-100 min-h-screen flex flex-col font-sans">
 
-<body class="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-100">
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-cardBg/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-600 rounded-lg text-white">
+                    <i data-lucide="sparkles" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Batch Image Export (300 PPI & 16-bit)</h1>
+                    <p class="text-xs text-slate-400">Xuất ảnh chất lượng cao chia thư mục PNG (16-bit) & JPG trực tiếp vào máy</p>
+                </div>
+            </div>
+            <div id="browser-warning" class="hidden text-xs bg-amber-500/10 text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/20 items-center gap-1.5">
+                <i data-lucide="alert-triangle" class="w-4 h-4"></i> Trình duyệt không hỗ trợ chọn thư mục. Khuyên dùng Google Chrome/Edge.
+            </div>
+        </div>
+    </header>
 
-<!-- FLOATING ZALO -->
-<a href="#contact" class="fixed bottom-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-full shadow-lg hover:scale-110 transition">
-💬 Zalo tư vấn
-</a>
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Controls & Settings -->
+        <div class="space-y-6">
+            <!-- Upload Box -->
+            <div class="bg-cardBg border border-slate-800 rounded-2xl p-5 shadow-lg">
+                <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-500"></i> 1. Tải ảnh lên
+                </h2>
+                <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-blue-500 transition-colors rounded-xl p-6 text-center cursor-pointer bg-slate-900/50">
+                    <input type="file" id="file-input" multiple accept="image/*" class="hidden">
+                    <i data-lucide="image" class="w-10 h-10 mx-auto text-slate-500 mb-2"></i>
+                    <p class="text-sm font-medium text-slate-200">Kéo thả ảnh vào đây hoặc bấm để chọn</p>
+                    <p class="text-xs text-slate-500 mt-1">Hỗ trợ PNG, JPG, WEBP...</p>
+                </div>
+            </div>
 
-<!-- HEADER -->
-<header class="fixed top-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur z-40 shadow">
-  <div class="max-w-7xl mx-auto flex justify-between items-center px-4 py-3">
-    <div class="font-bold text-xl text-primary">LandingPage<span class="text-secondary">Pro</span></div>
-    <nav class="hidden md:flex gap-6">
-      <a href="#features">Tính năng</a>
-      <a href="#process">Quy trình</a>
-      <a href="#pricing">Bảng giá</a>
-      <a href="#contact">Liên hệ</a>
-    </nav>
-    <div class="flex gap-3">
-      <button id="darkToggle">🌙</button>
-      <button id="menuBtn" class="md:hidden text-2xl">☰</button>
-    </div>
-  </div>
-  <div id="mobileMenu" class="hidden md:hidden px-4 pb-4">
-    <a href="#features" class="block py-2">Tính năng</a>
-    <a href="#process" class="block py-2">Quy trình</a>
-    <a href="#pricing" class="block py-2">Bảng giá</a>
-    <a href="#contact" class="block py-2">Liên hệ</a>
-  </div>
-</header>
+            <!-- Settings & Export Options -->
+            <div class="bg-cardBg border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+                <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="settings" class="w-4 h-4 text-blue-500"></i> Cấu hình chất lượng
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                        <span class="block text-[11px] text-slate-400">Độ phân giải</span>
+                        <span class="text-sm font-bold text-blue-400">300 PPI</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                        <span class="block text-[11px] text-slate-400">Độ sâu màu PNG</span>
+                        <span class="text-sm font-bold text-green-400">16-bit (Deep)</span>
+                    </div>
+                </div>
 
-<main class="pt-24">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Thư mục đích trên máy:</label>
+                    <button id="select-dir-btn" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all cursor-pointer">
+                        <i data-lucide="folder-open" class="w-4 h-4 text-blue-400"></i>
+                        <span id="dir-path-text" class="truncate max-w-[200px]">Chọn thư mục lưu...</span>
+                    </button>
+                    <p class="text-[11px] text-slate-500 mt-1.5">Tự động tạo 2 thư mục con <b>PNG</b> (16-bit) và <b>JPG</b>.</p>
+                </div>
 
-<!-- HERO -->
-<section class="bg-gradient-to-br from-primary to-blue-700 text-white">
-<div class="max-w-7xl mx-auto px-4 py-24 grid md:grid-cols-2 gap-10 items-center reveal">
-  <div>
-    <span class="inline-block bg-white/20 px-4 py-1 rounded-full mb-4">
-      🚀 Giải pháp bán hàng online
-    </span>
-    <h1 class="text-4xl md:text-5xl font-bold mb-6">
-      Landing Page giá rẻ<br>Chỉ từ <span class="text-yellow-300">2$</span>
-    </h1>
-    <p class="mb-8 text-lg opacity-90">
-      Dành cho người bán hàng, TikToker, freelancer.  
-      Không cần web phức tạp – chỉ cần 1 landing là đủ chốt khách.
-    </p>
-    <a href="#contact" class="bg-white text-primary px-8 py-4 rounded-xl font-semibold hover:scale-105 transition">
-      Nhận tư vấn miễn phí
-    </a>
-  </div>
-  <div class="hidden md:flex h-80 bg-white/20 rounded-2xl items-center justify-center text-6xl">
-    📈
-  </div>
-</div>
-</section>
+                <button id="export-btn" disabled class="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed">
+                    <i data-lucide="play-circle" class="w-5 h-5"></i> Bắt đầu xử lý & Lưu ngay
+                </button>
+            </div>
 
-<!-- SO SÁNH -->
-<section class="py-20 bg-gray-50 dark:bg-slate-800 reveal">
-<div class="max-w-6xl mx-auto px-4">
-<h2 class="text-3xl font-bold text-center mb-12">Có Landing vs Không Landing</h2>
-<div class="grid md:grid-cols-2 gap-8">
-<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
-<h3 class="font-bold text-xl mb-4 text-red-500">❌ Không Landing</h3>
-<ul class="space-y-2">
-<li>Khách xem xong là thoát</li>
-<li>Không biết liên hệ ở đâu</li>
-<li>Không đo lường được hiệu quả</li>
-</ul>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow border-2 border-primary">
-<h3 class="font-bold text-xl mb-4 text-primary">✅ Có Landing</h3>
-<ul class="space-y-2">
-<li>1 link – đầy đủ thông tin</li>
-<li>CTA rõ ràng, dễ chốt</li>
-<li>Tăng tỷ lệ chuyển đổi</li>
-</ul>
-</div>
-</div>
-</div>
-</section>
+            <!-- Progress Card -->
+            <div id="progress-container" class="bg-cardBg border border-slate-800 rounded-2xl p-5 shadow-lg hidden space-y-3">
+                <div class="flex justify-between text-sm">
+                    <span id="progress-status" class="text-slate-300 font-medium">Đang xử lý...</span>
+                    <span id="progress-percent" class="text-blue-400 font-bold">0%</span>
+                </div>
+                <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden">
+                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full w-0 transition-all duration-150"></div>
+                </div>
+            </div>
+        </div>
 
-<!-- FEATURES -->
-<section id="features" class="py-20 reveal">
-<div class="max-w-7xl mx-auto px-4">
-<h2 class="text-3xl font-bold text-center mb-12">Tính năng nổi bật</h2>
-<div class="grid md:grid-cols-3 gap-8">
-<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
-<h3 class="font-semibold text-xl mb-2">SEO Ready</h3>
-<p>Chuẩn meta, heading, dễ index Google.</p>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
-<h3 class="font-semibold text-xl mb-2">Mobile First</h3>
-<p>Tối ưu cho người dùng điện thoại.</p>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow">
-<h3 class="font-semibold text-xl mb-2">Tối ưu chuyển đổi</h3>
-<p>CTA, bố cục theo hành vi người dùng.</p>
-</div>
-</div>
-</div>
-</section>
+        <!-- Right Column: Text List & Logs -->
+        <div class="lg:col-span-2 space-y-6 flex flex-col">
+            <!-- Text List Box (Optimized for performance) -->
+            <div class="bg-cardBg border border-slate-800 rounded-2xl p-5 shadow-lg flex-1 flex flex-col min-h-[300px]">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="list" class="w-4 h-4 text-blue-500"></i> Danh sách tên file ảnh chờ (<span id="file-count">0</span>)
+                    </h2>
+                    <button id="clear-btn" class="text-xs text-red-400 hover:text-red-300 hidden cursor-pointer">Xóa tất cả</button>
+                </div>
+                <div id="file-list-container" class="bg-slate-900/60 border border-slate-800/80 rounded-xl overflow-y-auto max-h-[350px] p-3 flex-1 font-mono text-xs space-y-1.5">
+                    <div class="text-slate-500 text-center py-12 flex flex-col items-center justify-center">
+                        <i data-lucide="file-text" class="w-10 h-10 mb-2 stroke-1"></i>
+                        <p class="text-sm font-sans">Chưa có file nào được chọn</p>
+                    </div>
+                </div>
+            </div>
 
-<!-- PROCESS -->
-<section id="process" class="bg-gray-50 dark:bg-slate-800 py-20 reveal">
-<div class="max-w-6xl mx-auto px-4">
-<h2 class="text-3xl font-bold text-center mb-12">Quy trình triển khai</h2>
-<div class="grid md:grid-cols-4 gap-6 text-center">
-<div>📩<p class="mt-2">Nhận yêu cầu</p></div>
-<div>🎨<p class="mt-2">Thiết kế giao diện</p></div>
-<div>⚙️<p class="mt-2">Code & tối ưu</p></div>
-<div>🚀<p class="mt-2">Bàn giao</p></div>
-</div>
-</div>
-</section>
+            <!-- Console Log -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-xs shadow-inner h-36 overflow-y-auto flex flex-col-reverse" id="log-container">
+                <div id="log-content" class="space-y-1 text-slate-400">
+                    <p class="text-slate-600">> Hệ thống sẵn sàng (chế độ 300 PPI & 16-bit PNG).</p>
+                </div>
+            </div>
+        </div>
+    </main>
 
-<!-- PRICING -->
-<section id="pricing" class="py-20 reveal">
-<div class="max-w-7xl mx-auto px-4">
-<h2 class="text-3xl font-bold text-center mb-12">Bảng giá</h2>
-<div class="grid md:grid-cols-3 gap-8">
-<div class="border p-6 rounded-xl text-center">
-<h3 class="font-bold">Basic</h3>
-<p class="text-4xl font-bold text-primary my-4">$2</p>
-<p>Landing đơn giản – phù hợp test sản phẩm</p>
-</div>
-<div class="border-2 border-primary p-6 rounded-xl text-center scale-105">
-<span class="bg-primary text-white px-3 py-1 rounded-full text-sm">Bán chạy</span>
-<h3 class="font-bold mt-3">Standard</h3>
-<p class="text-4xl font-bold text-primary my-4">$10</p>
-<p>Tối ưu SEO – chuyển đổi cao</p>
-</div>
-<div class="border p-6 rounded-xl text-center">
-<h3 class="font-bold">Pro</h3>
-<p class="text-4xl font-bold text-primary my-4">$30+</p>
-<p>Thiết kế theo yêu cầu</p>
-</div>
-</div>
-</div>
-</section>
+    <!-- Script xử lý chính -->
+    <script>
+        lucide.createIcons();
 
-<!-- CONTACT -->
-<section id="contact" class="bg-primary text-white py-20 reveal">
-<div class="max-w-5xl mx-auto px-4 text-center">
-<h2 class="text-3xl font-bold mb-6">Nhận tư vấn miễn phí</h2>
-<div class="bg-white rounded-xl overflow-hidden">
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfLjDKLJ4236QwPkPq5yOOcY5cHhKeuIbzue-j5cq5P15PwZw/viewform?embedded=true"
-width="100%" height="700"></iframe>
-</div>
-<p class="mt-4 text-sm opacity-90">
-Website chỉ giới thiệu dịch vụ, không bán hàng trực tuyến.
-</p>
-</div>
-</section>
+        let selectedFiles = [];
+        let targetDirectoryHandle = null;
 
-</main>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const selectDirBtn = document.getElementById('select-dir-btn');
+        const dirPathText = document.getElementById('dir-path-text');
+        const exportBtn = document.getElementById('export-btn');
+        const fileListContainer = document.getElementById('file-list-container');
+        const fileCount = document.getElementById('file-count');
+        const clearBtn = document.getElementById('clear-btn');
+        const logContent = document.getElementById('log-content');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressStatus = document.getElementById('progress-status');
+        const progressPercent = document.getElementById('progress-percent');
+        const browserWarning = document.getElementById('browser-warning');
 
-<footer class="bg-secondary text-white py-8 text-center">
-© 2026 LandingPagePro
-</footer>
+        if (!window.showDirectoryPicker) {
+            browserWarning.classList.remove('hidden');
+            browserWarning.classList.add('flex');
+        }
 
-<script>
-menuBtn.onclick=()=>mobileMenu.classList.toggle('hidden');
-darkToggle.onclick=()=>document.documentElement.classList.toggle('dark');
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-slate-400';
+            logContent.innerHTML += `<p class="${color}">[${time}] ${message}</p>`;
+            const logContainer = document.getElementById('log-container');
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
 
-const reveals=document.querySelectorAll('.reveal');
-const io=new IntersectionObserver(entries=>{
-entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('active')})
-},{threshold:0.2});
-reveals.forEach(r=>io.observe(r));
-</script>
+        selectDirBtn.addEventListener('click', async () => {
+            if (!window.showDirectoryPicker) {
+                alert('Trình duyệt không hỗ trợ API chọn thư mục trực tiếp. Vui lòng dùng Google Chrome hoặc Microsoft Edge.');
+                return;
+            }
+            try {
+                targetDirectoryHandle = await window.showDirectoryPicker();
+                dirPathText.textContent = targetDirectoryHandle.name;
+                dirPathText.classList.add('text-blue-400', 'font-semibold');
+                log(`Đã chọn thư mục đích: "${targetDirectoryHandle.name}"`, 'success');
+                checkReadyState();
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    log(`Lỗi chọn thư mục: ${err.message}`, 'error');
+                }
+            }
+        });
 
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-slate-800/50');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-blue-500', 'bg-slate-800/50');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-slate-800/50');
+            if (e.dataTransfer.files) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    selectedFiles.push(file);
+                }
+            }
+            updateFileList();
+            checkReadyState();
+            log(`Đã nạp thêm ${files.length} tệp ảnh.`);
+        }
+
+        function updateFileList() {
+            fileCount.textContent = selectedFiles.length;
+            if (selectedFiles.length > 0) {
+                clearBtn.classList.remove('hidden');
+                fileListContainer.innerHTML = '';
+                
+                selectedFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between bg-slate-950/40 hover:bg-slate-950/80 px-3 py-2 rounded-lg border border-slate-800/50 transition-colors';
+                    
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 truncate mr-2">
+                            <span class="text-slate-500 text-[11px] w-6 text-right">${index + 1}.</span>
+                            <span class="text-slate-200 truncate font-medium">${file.name}</span>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="text-slate-500 text-[11px]">${sizeMB} MB</span>
+                            <button onclick="removeFile(${index})" class="text-slate-500 hover:text-red-400 p-1 transition-colors cursor-pointer" title="Xóa file này">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                    fileListContainer.appendChild(item);
+                });
+                lucide.createIcons();
+            } else {
+                clearBtn.classList.add('hidden');
+                fileListContainer.innerHTML = `
+                    <div class="text-slate-500 text-center py-12 flex flex-col items-center justify-center">
+                        <i data-lucide="file-text" class="w-10 h-10 mb-2 stroke-1"></i>
+                        <p class="text-sm font-sans">Chưa có file nào được chọn</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        window.removeFile = function(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            checkReadyState();
+            log('Đã loại bỏ một file khỏi danh sách.');
+        }
+
+        clearBtn.addEventListener('click', () => {
+            selectedFiles = [];
+            fileInput.value = '';
+            updateFileList();
+            checkReadyState();
+            log('Đã xóa toàn bộ danh sách ảnh.');
+        });
+
+        function checkReadyState() {
+            if (selectedFiles.length > 0 && targetDirectoryHandle) {
+                exportBtn.removeAttribute('disabled');
+            } else {
+                exportBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        // Hàm tự tạo cấu trúc binary file PNG 16-bit chuẩn chỉnh từ ImageData
+        async function create16BitPngBlob(canvas, ctx) {
+            // Lấy dữ liệu pixel RGBA từ canvas (8-bit per channel)
+            const width = canvas.width;
+            const height = canvas.height;
+            const imgData = ctx.getImageData(0, 0, width, height);
+            const src32 = imgData.data;
+
+            // Xây dựng IDAT chunk cho PNG 16-bit màu (color type 6: RGBA, depth 16)
+            // Mỗi pixel gồm 8 bytes: R(2 bytes), G(2 bytes), B(2 bytes), A(2 bytes)
+            const rowBytes = width * 8 + 1; // +1 cho filter byte (0 = None)
+            const idatDataSize = rowBytes * height;
+            const uncompressed = new Uint8Array(idatDataSize);
+
+            let srcIdx = 0;
+            let dstIdx = 0;
+            for (let y = 0; y < height; y++) {
+                uncompressed[dstIdx++] = 0; // Filter type None
+                for (let x = 0; x < width; x++) {
+                    const r8 = src32[srcIdx++];
+                    const g8 = src32[srcIdx++];
+                    const b8 = src32[srcIdx++];
+                    const a8 = src32[srcIdx++];
+
+                    // Nâng giá trị từ 8-bit lên 16-bit bằng cách nhân chéo (v * 257)
+                    const r16 = r8 * 257;
+                    const g16 = g8 * 257;
+                    const b16 = b8 * 257;
+                    const a16 = a8 * 257;
+
+                    uncompressed[dstIdx++] = (r16 >> 8) & 0xff;
+                    uncompressed[dstIdx++] = r16 & 0xff;
+                    uncompressed[dstIdx++] = (g16 >> 8) & 0xff;
+                    uncompressed[dstIdx++] = g16 & 0xff;
+                    uncompressed[dstIdx++] = (b16 >> 8) & 0xff;
+                    uncompressed[dstIdx++] = b16 & 0xff;
+                    uncompressed[dstIdx++] = (a16 >> 8) & 0xff;
+                    uncompressed[dstIdx++] = a16 & 0xff;
+                }
+            }
+
+            // Nén dữ liệu qua CompressionStream (deflate)
+            const cs = new CompressionStream('deflate');
+            const writer = cs.writable.getWriter();
+            writer.write(uncompressed);
+            writer.close();
+
+            const compressedChunks = [];
+            const reader = cs.readable.getReader();
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                compressedChunks.push(value);
+            }
+
+            // Gộp các chunk nén lại
+            let totalCompressedLength = compressedChunks.reduce((acc, chunk) => acc + chunk.length, 0);
+            let compressedData = new Uint8Array(totalCompressedLength);
+            let offset = 0;
+            for (let chunk of compressedChunks) {
+                compressedData.set(chunk, offset);
+                offset += chunk.length;
+            }
+
+            // Đóng gói cấu trúc file PNG chuẩn
+            // 1. Signature
+            const signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+
+            // 2. IHDR Chunk (Width, Height, Bit depth=16, Color type=6)
+            const ihdrData = new Uint8Array(13);
+            const view = new DataView(ihdrData.buffer);
+            view.setUint32(0, width);
+            view.setUint32(4, height);
+            ihdrData[8] = 16; // 16-bit depth
+            ihdrData[9] = 6;  // RGBA color type
+            ihdrData[10] = 0; // Compression method
+            ihdrData[11] = 0; // Filter method
+            ihdrData[12] = 0; // Interlace method
+
+            const ihdrChunk = createChunk('IHDR', ihdrData);
+
+            // 3. pHYs Chunk (Ghi nhận mật độ điểm ảnh 300 PPI: 300 pixels / 0.0254 meters ≈ 11811 pixels/meter)
+            const physData = new Uint8Array(9);
+            const physView = new DataView(physData.buffer);
+            const ppi300_ppm = Math.round(300 / 0.0254);
+            physView.setUint32(0, ppi300_ppm);
+            physView.setUint32(4, ppi300_ppm);
+            physData[8] = 1; // Unit is meter
+            const physChunk = createChunk('pHYs', physData);
+
+            // 4. IDAT Chunk
+            const idatChunk = createChunk('IDAT', compressedData);
+
+            // 5. IEND Chunk
+            const iendChunk = createChunk('IEND', new Uint8Array(0));
+
+            // Tổng hợp toàn bộ file Blob
+            const pngFileBytes = new Blob([signature, ihdrChunk, physChunk, idatChunk, iendChunk], { type: 'image/png' });
+            return pngFileBytes;
+        }
+
+        // Hàm hỗ trợ tạo PNG chunk kèm CRC32
+        function createChunk(type, data) {
+            const length = data.length;
+            const chunk = new Uint8Array(12 + length);
+            const view = new DataView(chunk.buffer);
+
+            view.setUint32(0, length);
+            chunk[4] = type.charCodeAt(0);
+            chunk[5] = type.charCodeAt(1);
+            chunk[6] = type.charCodeAt(2);
+            chunk[7] = type.charCodeAt(3);
+
+            chunk.set(data, 8);
+
+            // Tính CRC32
+            const crcData = new Uint8Array(4 + data.length);
+            crcData.set(chunk.subarray(4, 8), 0);
+            crcData.set(data, 4);
+            const crc = crc32(crcData);
+            view.setUint32(8 + length, crc);
+
+            return chunk;
+        }
+
+        // Thuật toán CRC32 chuẩn cho PNG
+        const crcTable = (() => {
+            let c;
+            let table = [];
+            for (let n = 0; n < 256; n++) {
+                c = n;
+                for (let k = 0; k < 8; k++) {
+                    c = ((c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1));
+                }
+                table[n] = c;
+            }
+            return table;
+        })();
+
+        function crc32(buf) {
+            let c = 0xffffffff;
+            for (let i = 0; i < buf.length; i++) {
+                c = crcTable[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+            }
+            return (c ^ 0xffffffff) >>> 0;
+        }
+
+        exportBtn.addEventListener('click', async () => {
+            if (!targetDirectoryHandle || selectedFiles.length === 0) return;
+
+            exportBtn.setAttribute('disabled', 'true');
+            progressContainer.classList.remove('hidden');
+            
+            try {
+                log('Đang thiết lập thư mục đích PNG (16-bit, 300 PPI) và JPG...');
+                const pngDirHandle = await targetDirectoryHandle.getDirectoryHandle('PNG', { create: true });
+                const jpgDirHandle = await targetDirectoryHandle.getDirectoryHandle('JPG', { create: true });
+
+                let total = selectedFiles.length;
+                let current = 0;
+
+                for (let file of selectedFiles) {
+                    current++;
+                    let percent = Math.round((current / total) * 100);
+                    progressBar.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                    progressStatus.textContent = `Đang xử lý (${current}/${total}): ${file.name}`;
+
+                    const bitmap = await createImageBitmap(file);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = bitmap.width;
+                    canvas.height = bitmap.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(bitmap, 0, 0);
+
+                    const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+
+                    // 1. Tạo và lưu file PNG 16-bit chuẩn 300 PPI
+                    const pngBlob = await create16BitPngBlob(canvas, ctx);
+                    const pngFileHandle = await pngDirHandle.getFileHandle(`${baseName}.png`, { create: true });
+                    const pngWritable = await pngFileHandle.createWritable();
+                    await pngWritable.write(pngBlob);
+                    await pngWritable.close();
+
+                    // 2. Lưu file JPG chất lượng cao
+                    const jpgBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+                    const jpgFileHandle = await jpgDirHandle.getFileHandle(`${baseName}.jpg`, { create: true });
+                    const jpgWritable = await jpgFileHandle.createWritable();
+                    await jpgWritable.write(jpgBlob);
+                    await jpgWritable.close();
+
+                    log(`Đã xuất thành công: ${baseName}.[png/jpg]`, 'success');
+                }
+
+                progressStatus.textContent = 'Hoàn tất xuất ảnh thành công!';
+                log('Toàn bộ ảnh đã được lưu trực tiếp vào các thư mục PNG và JPG.', 'success');
+                alert('Xuất file thành công với định dạng PNG 16-bit và JPG chất lượng cao!');
+
+            } catch (err) {
+                log(`Lỗi trong quá trình xuất file: ${err.message}`, 'error');
+                alert(`Đã xảy ra lỗi: ${err.message}`);
+            } finally {
+                exportBtn.removeAttribute('disabled');
+            }
+        });
+    </script>
 </body>
 </html>
